@@ -1775,7 +1775,7 @@ void ptx_instruction::print_insn() const {
 传入参数 FILE *fp，打印指令到该文件。
 */
 void ptx_instruction::print_insn(FILE *fp) const {
-  fprintf(fp, "%s", to_string().c_str());
+  fprintf(fp, "%s\n", to_string().c_str());
 }
 
 /*
