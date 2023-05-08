@@ -4013,16 +4013,38 @@ void mma_ld_impl(const ptx_instruction *pI, core_t *core, warp_inst_t &inst) {
   int thrd, stride;
   ptx_thread_info *thread;
 
+  //打印PI指令的信息。
+  pI->print_insn();
+
+  //计算当前warp的起始线程id。
   if (core->get_gpu()->is_functional_sim())
     tid = inst.warp_id_func() * core->get_warp_size();
   else
     tid = inst.warp_id() * core->get_warp_size();
 
+  //判断当前指令是load还是store。
   _memory_op_t insn_memory_op =
       pI->has_memory_read() ? memory_load : memory_store;
 
+  //对当前warp的所有线程id进行循环，每一个线程负责自己数据的读取。
   for (thrd = 0; thrd < core->get_warp_size(); thrd++) {
+    //根据当前线程id，获取当前线程对象。
     thread = core->get_thread_info()[tid + thrd];
+    //每个矩阵可以以行主序布局或列主序布局存储在存储器中。在行主序格式中，每行的连续元素都存储在连续的存储
+    //位置中，并且该行被称为矩阵的前导维度。在列主序格式中，每列的连续元素存储在连续的存储位置中，该列被称
+    //为矩阵的前导维度。前导维度（行或列）的连续实例不需要连续存储在内存中。wmma.load和wmma.store操作接受
+    //一个可选的参数步幅，该步幅参数指定从每行（或列）的开头到下一行（而不是字节）的偏移量。例如，通过wmma
+    //操作访问的矩阵可以是来自存储在存储器中的较大矩阵的子矩阵。这允许程序员对大于wmma运算支持的形状的矩阵
+    //进行乘法和累加运算。前导维度（行或列）的每个实例的起始地址必须与相应片段的大小（以字节为单位）对齐。
+    //请注意，起始地址由基指针和可选步幅决定。
+    //wmma.load的指令格式：
+    //    wmma.load.a.sync.layout.shape.type ra, [pa] {stride};
+    //    wmma.load.b.sync.layout.shape.type rb, [pb] {stride};
+    //    wmma.load.c.sync.layout.shape.type rc, [pc] {stride};
+    //其中，ra、rb、rc表示通用寄存器集合，这些通用寄存器集合分布跨warp（对应fragment，每个warp线程持有一
+    //个fragment）线程。PTX指令中的pa、pb、pc代表保存操作数矩阵A、B、C的内存地址。
+
+    //这里 src1_data -> [pa]，src2_data -> {stride}。
     ptx_reg_t src1_data =
         thread->get_operand_value(src1, dst, U32_TYPE, thread, 1);
     ptx_reg_t src2_data =
