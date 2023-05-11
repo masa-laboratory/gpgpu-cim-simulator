@@ -356,12 +356,14 @@ void gpgpu_context::gpgpu_ptx_info_load_from_filename(const char *filename,
       buff, 1024,
       "$CUDA_INSTALL_PATH/bin/ptxas %s -v %s --output-file  /dev/null 2> %s",
       extra_flags, filename, ptxas_filename.c_str());
+  /* //yangjianchao16
   int result = system(buff);
   if (result != 0) {
     printf("GPGPU-Sim PTX: ERROR ** while loading PTX (b) %d\n", result);
     printf("               Ensure ptxas is in your path.\n");
     exit(1);
   }
+  */ //yangjianchao16
 
   FILE *ptxinfo_in;
   ptxinfo->g_ptxinfo_filename = strdup(ptxas_filename.c_str());
