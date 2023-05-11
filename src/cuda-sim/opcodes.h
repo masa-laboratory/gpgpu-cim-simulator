@@ -74,4 +74,8 @@ enum wmma_type {
   M8N32K16
 
 };
+enum cimma_type { //yangjianchao16
+  CIMMA,          //yangjianchao16
+  M128N128K8      //yangjianchao16
+};                //yangjianchao16
 #endif
