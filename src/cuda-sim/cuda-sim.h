@@ -167,11 +167,13 @@ class cuda_sim {
   char *opcode_latency_dp;
   char *opcode_latency_sfu;
   char *opcode_latency_tensor;
+  char *opcode_latency_cim; //yangjianchao16
   char *opcode_initiation_int;
   char *opcode_initiation_fp;
   char *opcode_initiation_dp;
   char *opcode_initiation_sfu;
   char *opcode_initiation_tensor;
+  char *opcode_initiation_cim; //yangjianchao16
   int cp_count;
   int cp_cta_resume;
   int g_ptxinfo_error_detected;
