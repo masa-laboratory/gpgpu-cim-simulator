@@ -95,6 +95,7 @@ void ptx_recognizer::init_instruction_state() {
   g_opcode = -1;
   g_options.clear();
   g_wmma_options.clear();
+  g_cimma_options.clear(); //yangjianchao16
   g_return_var = operand_info(gpgpu_ctx);
   init_directive_state();
 }
@@ -635,6 +636,7 @@ void ptx_recognizer::add_scalar_type_spec(int type_spec) {
         (g_opcode == -1) || (g_opcode == CVT_OP) || (g_opcode == SET_OP) ||
         (g_opcode == SLCT_OP) || (g_opcode == TEX_OP) ||
         (g_opcode == MMA_OP) || (g_opcode == DP4A_OP) ||
+        (g_opcode == CIMMA_OP) || //yangjianchao16
         (g_opcode == VMIN_OP) || (g_opcode == VMAX_OP),
         "only cvt, set, slct, tex, vmin, vmax and dp4a can have more than one "
         "type specifier.");
@@ -677,6 +679,12 @@ void ptx_recognizer::add_wmma_option(int option) {
   PTX_PARSE_DPRINTF("add_option");
   g_wmma_options.push_back(option);
 }
+
+void ptx_recognizer::add_cimma_option(int option) { //yangjianchao16
+  PTX_PARSE_DPRINTF("add_option");                  //yangjianchao16
+  g_cimma_options.push_back(option);                //yangjianchao16
+}                                                   //yangjianchao16
+
 void ptx_recognizer::add_double_operand(const char *d1, const char *d2) {
   // operands that access two variables.
   // eg. s[$ofs1+$r0], g[$ofs1+=$r0]
