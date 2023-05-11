@@ -118,6 +118,7 @@ enum uarch_op_t {
   ALU_OP = 1,
   SFU_OP,
   TENSOR_CORE_OP,
+  CIM_OP, //yangjianchao16
   DP_OP,
   SP_OP,
   INTP_OP,
@@ -170,6 +171,7 @@ enum special_operations_t {
   DP_DIV_OP,
   DP___OP,
   TENSOR__OP,
+  SHM_MMA__OP, //yangjianchao16
   TEX__OP
 };
 typedef enum special_operations_t
@@ -1554,16 +1556,23 @@ class core_t {
   unsigned reduction_storage[MAX_CTA_PER_SHADER][MAX_BARRIERS_PER_CTA];
 };
 
-// register that can hold multiple instructions.
+/*
+register that can hold multiple instructions.
+单个寄存器集合可以包含多条指令，方便模拟，而非真实硬件结构。
+*/
 class register_set {
  public:
+  //构造函数，用于初始化寄存器集合，寄存器集合中有num个寄存器，每个寄存器含有一条指令。
   register_set(unsigned num, const char *name) {
     for (unsigned i = 0; i < num; i++) {
       regs.push_back(new warp_inst_t());
     }
+    //m_name是该寄存器集合的名字。
     m_name = name;
   }
+  //获取该寄存器集合的名字。
   const char *get_name() { return m_name; }
+  //遍历寄存器集合中的所有寄存器，判断是否有寄存器为空。
   bool has_free() {
     for (unsigned i = 0; i < regs.size(); i++) {
       if (regs[i]->empty()) {
@@ -1572,6 +1581,7 @@ class register_set {
     }
     return false;
   }
+  //给定一个寄存器id，判断该寄存器是否为空。
   bool has_free(bool sub_core_model, unsigned reg_id) {
     // in subcore model, each sched has a one specific reg to use (based on
     // sched id)
@@ -1580,6 +1590,7 @@ class register_set {
     assert(reg_id < regs.size());
     return regs[reg_id]->empty();
   }
+  //获取一个非空寄存器的id。
   bool has_ready() {
     for (unsigned i = 0; i < regs.size(); i++) {
       if (not regs[i]->empty()) {
@@ -1588,12 +1599,13 @@ class register_set {
     }
     return false;
   }
+  //给定一个寄存器id，判断该寄存器是否非空。
   bool has_ready(bool sub_core_model, unsigned reg_id) {
     if (!sub_core_model) return has_ready();
     assert(reg_id < regs.size());
     return (not regs[reg_id]->empty());
   }
-
+  //获取一个非空寄存器的id。
   unsigned get_ready_reg_id() {
     // for sub core model we need to figure which reg_id has the ready warp
     // this function should only be called if has_ready() was true
@@ -1617,6 +1629,7 @@ class register_set {
     assert(not regs[reg_id]->empty());
     return regs[reg_id]->get_schd_id();
   }
+  //获取一个非空寄存器，并将一条指令存入。
   void move_in(warp_inst_t *&src) {
     warp_inst_t **free = get_free();
     move_warp(*free, src);
@@ -1624,6 +1637,7 @@ class register_set {
   // void copy_in( warp_inst_t* src ){
   //   src->copy_contents_to(*get_free());
   //}
+  //获取一个空寄存器，并将一条指令存入。
   void move_in(bool sub_core_model, unsigned reg_id, warp_inst_t *&src) {
     warp_inst_t **free;
     if (!sub_core_model) {
@@ -1634,11 +1648,12 @@ class register_set {
     }
     move_warp(*free, src);
   }
-
+  //获取一个非空寄存器，并将其指令移出到dest。
   void move_out_to(warp_inst_t *&dest) {
     warp_inst_t **ready = get_ready();
     move_warp(dest, *ready);
   }
+  //依据寄存器编号reg_id，获取一个非空寄存器，并将其指令移出到dest。
   void move_out_to(bool sub_core_model, unsigned reg_id, warp_inst_t *&dest) {
     if (!sub_core_model) {
       return move_out_to(dest);
@@ -1647,7 +1662,7 @@ class register_set {
     assert(ready != NULL);
     move_warp(dest, *ready);
   }
-
+  //获取一个非空寄存器，将其指令移出，并返回这条指令。
   warp_inst_t **get_ready() {
     warp_inst_t **ready;
     ready = NULL;
@@ -1662,6 +1677,7 @@ class register_set {
     }
     return ready;
   }
+  //获取一个非空寄存器，将其指令移出，并返回这条指令。
   warp_inst_t **get_ready(bool sub_core_model, unsigned reg_id) {
     if (!sub_core_model) return get_ready();
     warp_inst_t **ready;
@@ -1670,7 +1686,7 @@ class register_set {
     if (not regs[reg_id]->empty()) ready = &regs[reg_id];
     return ready;
   }
-
+  //打印寄存器集合中的所有寄存器。
   void print(FILE *fp) const {
     fprintf(fp, "%s : @%p\n", m_name, this);
     for (unsigned i = 0; i < regs.size(); i++) {
@@ -1679,7 +1695,7 @@ class register_set {
       fprintf(fp, "\n");
     }
   }
-
+  //遍历所有寄存器，获取一个空寄存器的id。
   warp_inst_t **get_free() {
     for (unsigned i = 0; i < regs.size(); i++) {
       if (regs[i]->empty()) {
@@ -1689,7 +1705,7 @@ class register_set {
     assert(0 && "No free registers found");
     return NULL;
   }
-
+  //遍历所有寄存器，获取一个空寄存器的地址。
   warp_inst_t **get_free(bool sub_core_model, unsigned reg_id) {
     // in subcore model, each sched has a one specific reg to use (based on
     // sched id)
@@ -1702,11 +1718,13 @@ class register_set {
     assert(0 && "No free register found");
     return NULL;
   }
-
+  //返回寄存器集合的大小。
   unsigned get_size() { return regs.size(); }
 
  private:
+  //将寄存器集合中的所有寄存器用一个向量保存。
   std::vector<warp_inst_t *> regs;
+  //该寄存器集合的名字。
   const char *m_name;
 };
 
