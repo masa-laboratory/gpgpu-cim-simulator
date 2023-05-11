@@ -2342,16 +2342,31 @@ void ldst_unit::invalidate() {
   m_L1D->invalidate();
 }
 
+/*
+issue(warp_inst_t*&)成员函数将给定的流水线寄存器的内容移入m_dispatch_reg。然后指令在m_dispatch_reg等待
+initiation_interval个周期。在此期间，没有其他的指令可以发到这个单元，所以这个等待是指令的吞吐量的模型。
+*/
 simd_function_unit::simd_function_unit(const shader_core_config *config) {
   m_config = config;
+  //m_dispatch_reg其实是个缓冲，保存输入的指令，等待执行。当指令从设置到功能单元的OC_EX寄存器发出时，它被
+  //保存在调度寄存器中。dispatch register是其中一种类型的寄存器。dispatch register记录着指令，会在被后续
+  //执行时被传递给执行单元。具体来说，dispatch register是一个包含多个字段的结构体，其中包括指令的目的地址、
+  //数据类型、操作码等信息。dispatch register可以看作是指令调度过程中传递数据的重要寄存器。
   m_dispatch_reg = new warp_inst_t(config);
 }
 
+/*
+issue(warp_inst_t*&)成员函数将给定的流水线寄存器的内容移入m_dispatch_reg。
+*/
 void simd_function_unit::issue(register_set &source_reg) {
+  //在simd_function_unit实现中，is_issue_partitioned()是虚拟函数，除LDST单元外的其他计算单元均返回True。
+  //m_config->sub_core_model为True。
   bool partition_issue =
       m_config->sub_core_model && this->is_issue_partitioned();
+  //source_reg即为流水线寄存器，目的是找到一个非空的指令，将其移入m_dispatch_reg。
   source_reg.move_out_to(partition_issue, this->get_issue_reg_id(),
                          m_dispatch_reg);
+  //设置m_dispatch_reg的标识占用位图的状态，m_dispatch_reg是warp_inst_t类型，可获取该指令的延迟。
   occupied.set(m_dispatch_reg->latency);
 }
 
@@ -2369,6 +2384,14 @@ tensor_core::tensor_core(register_set *result_port,
                           core, issue_reg_id) {
   m_name = "TENSOR_CORE";
 }
+
+cim::cim(register_set *result_port,                                              //yangjianchao16
+         const shader_core_config *config,                                       //yangjianchao16
+         shader_core_ctx *core, unsigned issue_reg_id)                           //yangjianchao16
+    : pipelined_simd_unit(result_port, config, config->max_tensor_core_latency,  //yangjianchao16
+                          core, issue_reg_id) {                                  //yangjianchao16
+  m_name = "CIM";                                                                //yangjianchao16
+}                                                                                //yangjianchao16
 
 void sfu::issue(register_set &source_reg) {
   warp_inst_t **ready_reg =
@@ -2390,6 +2413,10 @@ void tensor_core::issue(register_set &source_reg) {
   pipelined_simd_unit::issue(source_reg);
 }
 
+/*
+lane的意思为一个warp中有32个线程，而在流水线寄存器中可能暂存了很多条指令，这些指令的每对应的线程掩码的每一
+位都是一个lane。即遍历流水线寄存器中的非空指令，返回所有指令的整体线程掩码（所有指令线程掩码的或值）。
+*/
 unsigned pipelined_simd_unit::get_active_lanes_in_pipeline() {
   active_mask_t active_lanes;
   active_lanes.reset();
@@ -2452,6 +2479,14 @@ void tensor_core::active_lanes_in_pipeline() {
   m_core->incfuactivelanes_stat(active_count);
   m_core->incfumemactivelanes_stat(active_count);
 }
+
+void cim::active_lanes_in_pipeline() {                                          //yangjianchao16
+  unsigned active_count = pipelined_simd_unit::get_active_lanes_in_pipeline();  //yangjianchao16
+  assert(active_count <= m_core->get_config()->warp_size);                      //yangjianchao16
+  m_core->incsfuactivelanes_stat(active_count);                                 //yangjianchao16
+  m_core->incfuactivelanes_stat(active_count);                                  //yangjianchao16
+  m_core->incfumemactivelanes_stat(active_count);                               //yangjianchao16
+}                                                                               //yangjianchao16
 
 sp_unit::sp_unit(register_set *result_port, const shader_core_config *config,
                  shader_core_ctx *core, unsigned issue_reg_id)
@@ -2520,6 +2555,27 @@ void int_unit ::issue(register_set &source_reg) {
   pipelined_simd_unit::issue(source_reg);
 }
 
+/*
+SP单元和SFU单元的时序模型主要在 shader.h 中定义的 pipelined_simd_unit 类中实现。模拟单元的具体类（
+sp_unit类和sfu类）是从这个类派生出来的，由可重载的 can_issue() 成员函数来指定单元可执行的指令类型。
+
+SP单元通过OC_EX_SP流水线寄存器连接到操作收集器单元；SFU单元通过OC_EX_SFU流水线寄存器连接到操作数收集
+器单元。两个单元通过WB_EX流水线寄存器共享一个共同的写回阶段。为了防止两个单元因写回阶段的冲突而停滞，
+每条进入任何一个单元的指令都必须在发出到目标单元之前在结果总线（m_result_bus）上分配一个槽（见shader
+_core_ctx::execute()）。
+
+手册[ALU流水线软件模型]中的图提供了一个概览，介绍了pipelined_simd_unit如何为不同类型的指令建立吞吐量
+和延迟。
+
+在每个pipelined_simd_unit中，issue(warp_inst_t*&)成员函数将给定的流水线寄存器的内容移入m_dispatch_
+reg。然后指令在m_dispatch_reg等待initiation_interval个周期。在此期间，没有其他的指令可以发到这个单
+元，所以这个等待是指令的吞吐量的模型。等待之后，指令被派发到内部流水线寄存器m_pipeline_reg进行延迟建
+模。派遣的位置是确定的，所以在m_dispatch_reg中花费的时间也被计入延迟中。每个周期，指令将通过流水线寄
+存器前进，最终进入m_result_port，这是共享的流水线寄存器，通向SP和SFU单元的共同写回阶段。
+
+各类指令的吞吐量和延迟在cuda-sim.cc的ptx_instruction::set_opcode_and_latency()中指定。这个函数在预
+解码时被调用。
+*/
 pipelined_simd_unit::pipelined_simd_unit(register_set *result_port,
                                          const shader_core_config *config,
                                          unsigned max_latency,
@@ -3616,6 +3672,8 @@ void shader_core_config::set_pipeline_latency() {
   unsigned sfu_latency;
   unsigned tensor_latency;
 
+  unsigned cim_latency; //yangjianchao16
+
   /*
    * [0] ADD,SUB
    * [1] MAX,Min
@@ -3635,6 +3693,7 @@ void shader_core_config::set_pipeline_latency() {
          &dp_latency[4]);
   sscanf(gpgpu_ctx->func_sim->opcode_latency_sfu, "%u", &sfu_latency);
   sscanf(gpgpu_ctx->func_sim->opcode_latency_tensor, "%u", &tensor_latency);
+  sscanf(gpgpu_ctx->func_sim->opcode_latency_cim, "%u", &cim_latency); //yangjianchao16
 
   // all div operation are executed on sfu
   // assume that the max latency are dp div or normal sfu_latency
@@ -3644,6 +3703,8 @@ void shader_core_config::set_pipeline_latency() {
   max_int_latency = std::max(int_latency[1], int_latency[5]);
   max_dp_latency = dp_latency[1];
   max_tensor_core_latency = tensor_latency;
+  
+  max_cim_latency = cim_latency; //yangjianchao16
 }
 
 /*
