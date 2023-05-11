@@ -95,6 +95,12 @@ void cuda_sim::ptx_opcocde_latency_options(option_parser_t opp) {
                          "Opcode latencies for Tensor instructions"
                          "Default 64",
                          "64");
+  //Cim指令操作码延迟。                                              //yangjianchao16
+  option_parser_register(opp, "-ptx_opcode_latency_cim", OPT_CSTR, //yangjianchao16
+                         &opcode_latency_cim,                      //yangjianchao16
+                         "Opcode latencies for Cim instructions"   //yangjianchao16
+                         "Default 64",                             //yangjianchao16
+                         "64");                                    //yangjianchao16
   //整型指令操作码初始化周期，用逗号隔开的是<ADD,MAX,MUL,MAD,DIV,SHFL>指令。对于这个周期数，ALU的
   //输入保持恒定。ALU在此期间不能使用新值。即如果该值为4，则意味着该单元可以每4个周期消耗一次新值。
   option_parser_register(
@@ -128,6 +134,12 @@ void cuda_sim::ptx_opcocde_latency_options(option_parser_t opp) {
                          "Opcode initiation intervals for tensor instructions"
                          "Default 64",
                          "64");
+  //Cim指令操作码初始化周期。                                                 //yangjianchao16
+  option_parser_register(opp, "-ptx_opcode_initiation_cim", OPT_CSTR,       //yangjianchao16
+                         &opcode_initiation_cim,                            //yangjianchao16
+                         "Opcode initiation intervals for cim instructions" //yangjianchao16
+                         "Default 64",                                      //yangjianchao16
+                         "64");                                             //yangjianchao16
   //下列CUDA API的延迟：
   //cudaStreamCreateWithFlags, cudaGetParameterBufferV2_init_perWarp, 
   //cudaGetParameterBufferV2_perKernel, cudaLaunchDeviceV2_init_perWarp, 
@@ -873,39 +885,42 @@ void ptx_instruction::set_mul_div_or_other_archop() {
             case MUL_OP:
             case MAD_OP:
             case FMA_OP:
-                sp_op=DP_MUL_OP;
-               break;
+              sp_op=DP_MUL_OP;
+              break;
             case DIV_OP:
             case REM_OP:
-                sp_op=DP_DIV_OP;
-               break;
+              sp_op=DP_DIV_OP;
+              break;
             case RCP_OP:
-                sp_op=DP_DIV_OP;
-               break;
+              sp_op=DP_DIV_OP;
+              break;
             case LG2_OP:
-                sp_op=FP_LG_OP;
-               break;
+              sp_op=FP_LG_OP;
+              break;
             case RSQRT_OP:
             case SQRT_OP:
-                sp_op=FP_SQRT_OP;
-               break;            
+              sp_op=FP_SQRT_OP;
+              break;            
             case SIN_OP:
             case COS_OP:
-                sp_op=FP_SIN_OP;
-               break;
+              sp_op=FP_SIN_OP;
+              break;
             case EX2_OP:
-                sp_op=FP_EXP_OP;
-               break;
+              sp_op=FP_EXP_OP;
+              break;
             case MMA_OP:
-                sp_op=TENSOR__OP;
-            break;
+              sp_op=TENSOR__OP;
+              break;
+            case CIMMA_OP:             //yangjianchao16
+              sp_op = SHM_MMA__OP;   //yangjianchao16
+              break;                  //yangjianchao16
             case TEX_OP:
-                sp_op=TEX__OP;
-            break;
+              sp_op=TEX__OP;
+              break;
             default:
-               if((op==DP_OP) || (op==ALU_OP))
-                  sp_op=DP___OP;
-               break;
+              if((op==DP_OP) || (op==ALU_OP))
+                sp_op=DP___OP;
+              break;
          }
       }
       else if(get_type()==F16_TYPE || get_type()==F32_TYPE){
@@ -943,12 +958,15 @@ void ptx_instruction::set_mul_div_or_other_archop() {
         case MMA_OP:
           sp_op=TENSOR__OP;
           break;
+        case CIMMA_OP:             //yangjianchao16
+          sp_op = SHM_MMA__OP;     //yangjianchao16
+          break;                   //yangjianchao16
         case TEX_OP:
           sp_op=TEX__OP;
           break;
         default:
           if((op==SP_OP) || (op==ALU_OP))
-		    sp_op=FP__OP;
+		        sp_op=FP__OP;
           break;
       }
     } else {
@@ -973,11 +991,14 @@ void ptx_instruction::set_mul_div_or_other_archop() {
           sp_op = INT_DIV_OP;
           break;
         case MMA_OP:
-                sp_op=TENSOR__OP;
-            break;
-            case TEX_OP:
-                sp_op=TEX__OP;
-            break;
+          sp_op=TENSOR__OP;
+          break;
+        case CIMMA_OP:             //yangjianchao16
+          sp_op = SHM_MMA__OP;     //yangjianchao16
+          break;                   //yangjianchao16
+        case TEX_OP:
+          sp_op=TEX__OP;
+          break;
         default:
           if((op==INTP_OP) || (op==ALU_OP))
             sp_op=INT__OP;
@@ -1056,7 +1077,10 @@ void ptx_instruction::set_opcode_and_latency() {
   unsigned dp_init[5];
   unsigned sfu_init;
   unsigned tensor_init;
-  
+
+  unsigned cim_latency; //yangjianchao16
+  unsigned cim_init;    //yangjianchao16
+
   //下列scanf的列表每个元素代表的指令：
   //[0]=ADD,SUB  [1]=MAX,Min  [2]=MUL  [3]=MAD  [4]=DIV  [5]=SHFL
   sscanf(gpgpu_ctx->func_sim->opcode_latency_int, "%u,%u,%u,%u,%u,%u",
@@ -1074,6 +1098,8 @@ void ptx_instruction::set_opcode_and_latency() {
   sscanf(gpgpu_ctx->func_sim->opcode_latency_sfu, "%u", &sfu_latency);
   //Tensor指令操作码延迟。
   sscanf(gpgpu_ctx->func_sim->opcode_latency_tensor, "%u", &tensor_latency);
+  //Cim指令操作码延迟。                                                  //yangjianchao16
+  sscanf(gpgpu_ctx->func_sim->opcode_latency_cim, "%u", &cim_latency); //yangjianchao16
   //[0]=ADD,SUB  [1]=MAX,Min  [2]=MUL  [3]=MAD  [4]=DIV  [5]=SHFL
   sscanf(gpgpu_ctx->func_sim->opcode_initiation_int, "%u,%u,%u,%u,%u,%u",
          &int_init[0], &int_init[1], &int_init[2], &int_init[3], &int_init[4],
@@ -1088,6 +1114,8 @@ void ptx_instruction::set_opcode_and_latency() {
   sscanf(gpgpu_ctx->func_sim->opcode_initiation_sfu, "%u", &sfu_init);
   //Tensor指令操作码初始化周期。
   sscanf(gpgpu_ctx->func_sim->opcode_initiation_tensor, "%u", &tensor_init);
+  //Cim指令操作码初始化周期。                                                  //yangjianchao16
+  sscanf(gpgpu_ctx->func_sim->opcode_initiation_cim, "%u", &cim_init);       //yangjianchao16
   //下列CUDA API的延迟：
   //cudaStreamCreateWithFlags, cudaGetParameterBufferV2_init_perWarp, 
   //cudaGetParameterBufferV2_perKernel, cudaLaunchDeviceV2_init_perWarp, 
@@ -1341,6 +1369,11 @@ void ptx_instruction::set_opcode_and_latency() {
       initiation_interval = tensor_init;
       op = TENSOR_CORE_OP;
       break;
+    case CIMMA_OP:                    //yangjianchao16
+      latency = cim_latency;          //yangjianchao16
+      initiation_interval = cim_init; //yangjianchao16
+      op = CIM_OP;                    //yangjianchao16
+      break;                          //yangjianchao16
     case SHFL_OP:
       latency = int_latency[5];
       initiation_interval = int_init[5];
