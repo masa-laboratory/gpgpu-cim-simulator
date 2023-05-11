@@ -50,6 +50,7 @@ class ptx_recognizer;
 %token <string_value> STRING
 %token <int_value>  OPCODE
 %token <int_value>  WMMA_DIRECTIVE
+%token <int_value>  CIMMA_DIRECTIVE //yangjianchao16
 %token <int_value>  LAYOUT 
 %token <int_value>  CONFIGURATION 
 %token  ALIGN_DIRECTIVE
@@ -469,6 +470,7 @@ option: type_spec
 	| addressable_spec
 	| rounding_mode
 	| wmma_spec 
+	| cimma_spec //yangjianchao16
 	| prmt_spec 
 	| SYNC_OPTION { recognizer->add_option(SYNC_OPTION); }
 	| ARRIVE_OPTION { recognizer->add_option(ARRIVE_OPTION); }
@@ -574,7 +576,9 @@ vp_spec: WMMA_DIRECTIVE LAYOUT CONFIGURATION{recognizer->add_space_spec(global_s
 	| WMMA_DIRECTIVE LAYOUT LAYOUT CONFIGURATION{recognizer->add_wmma_option($1);recognizer->add_wmma_option($2);recognizer->add_wmma_option($3);recognizer->add_wmma_option($4);}
 	;
 
-
+cimma_spec: CIMMA_DIRECTIVE LAYOUT CONFIGURATION{recognizer->add_space_spec(global_space,0);recognizer->add_ptr_spec(global_space); recognizer->add_cimma_option($1);recognizer->add_cimma_option($2);recognizer->add_cimma_option($3);} //yangjianchao16
+	| CIMMA_DIRECTIVE LAYOUT LAYOUT CONFIGURATION{recognizer->add_cimma_option($1);recognizer->add_cimma_option($2);recognizer->add_cimma_option($3);recognizer->add_cimma_option($4);} //yangjianchao16
+	; //yangjianchao16
 
 operand_list: operand
 	| operand COMMA operand_list;
