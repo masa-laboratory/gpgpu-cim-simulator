@@ -85,6 +85,8 @@ wmma	TC; yylval->int_value = MMA_OP; return OPCODE;
 wmma\.load	TC; yylval->int_value = MMA_LD_OP; return OPCODE;
 wmma\.store 	TC; yylval->int_value = MMA_ST_OP; return OPCODE;
 
+cimma	TC; yylval->int_value = CIMMA_OP; return OPCODE; //yangjianchao16
+
 call	TC; BEGIN(NOT_OPCODE); yylval->int_value = CALL_OP; return OPCODE; // blocking opcode token in case the callee has the same name as an opcode
 callp   TC; BEGIN(NOT_OPCODE); yylval->int_value = CALLP_OP; return OPCODE;
 clz	TC; yylval->int_value = CLZ_OP; return OPCODE;
@@ -182,6 +184,9 @@ breakaddr  TC; yylval->int_value = BREAKADDR_OP; return OPCODE;
 \.m16n16k16\.global TC; yylval->int_value = M16N16K16; return CONFIGURATION;
 \.m32n8k16\.global TC; yylval->int_value = M32N8K16; return CONFIGURATION;
 \.m8n32k16\.global TC;  yylval->int_value = M8N32K16; return CONFIGURATION;
+
+\.shm\.mma\.sync\.aligned TC; yylval->int_value = CIMMA; return CIMMA_DIRECTIVE; //yangjianchao16
+\.m128n128k8 TC; yylval->int_value = M128N128K8; return CONFIGURATION; //yangjianchao16
 
 \.m16n16k16\.shared TC; yylval->int_value = M16N16K16; return CONFIGURATION;
 \.m32n8k16\.shared TC; yylval->int_value = M32N8K16; return CONFIGURATION;
@@ -486,6 +491,6 @@ int ptx_error( yyscan_t yyscanner, ptx_recognizer* recognizer, const char *s )
 			
 	printf("^\n\n");
 	fflush(stdout);
-	//exit(1);
+	exit(1);
 	return 0;
 }
