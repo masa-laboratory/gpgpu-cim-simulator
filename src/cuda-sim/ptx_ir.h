@@ -1273,7 +1273,7 @@ class ptx_instruction : public warp_inst_t {
   void set_m_instr_mem_index(unsigned index) { m_instr_mem_index = index; }
   //设置当前指令的 PC 值，指令处理过程中，为每条指令分配一个唯一的 PC 并作为参数传入该函数，该函数设置
   //当前指令的 PC 值：m_PC = PC。
-  void set_PC(addr_t PC) { m_PC = PC; }
+  void set_PC(addr_t PC) { m_PC = PC; print_insn();} // yangjianchao16
   //获取当前指令的 PC 值，返回 m_PC。
   addr_t get_PC() const { return m_PC; }
 
