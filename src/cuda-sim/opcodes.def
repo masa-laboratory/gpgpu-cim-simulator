@@ -134,3 +134,5 @@ OP_DEF(XOR_OP,xor_impl,"xor",1,1)
 OP_DEF(NOP_OP,nop_impl,"nop",0,7)
 OP_DEF(BREAK_OP,break_impl,"break",0,3)
 OP_DEF(BREAKADDR_OP,breakaddr_impl,"breakaddr",0,3)
+
+OP_W_DEF(CIMMA_OP,cimma_impl,"cimma",1,1) //yangjianchao16
