@@ -1,0 +1,5 @@
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z5SgemmILi128ELi8ELi128ELi8ELi8ELb0EEvPfS0_S0_iii' for 'sm_75'
+ptxas info    : Function properties for _Z5SgemmILi128ELi8ELi128ELi8ELi8ELb0EEvPfS0_S0_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 129 registers, 16384 bytes smem, 388 bytes cmem[0]
