@@ -1036,6 +1036,7 @@ class ptx_instruction : public warp_inst_t {
                   symbol *label, const std::list<operand_info> &operands,
                   const operand_info &return_var, const std::list<int> &options,
                   const std::list<int> &wmma_options,
+                  const std::list<int> &cimma_options, //yangjianchao16
                   const std::list<int> &scalar_type, memory_space_t space_spec,
                   const char *file, unsigned line, const char *source,
                   const core_config *config, gpgpu_context *ctx);
@@ -1239,7 +1240,11 @@ class ptx_instruction : public warp_inst_t {
   unsigned get_vector() const { return m_vector_spec; }
   unsigned get_atomic() const { return m_atomic_spec; }
 
-  //
+  int get_cimma_type() const { return m_cimma_type; }
+  int get_cimma_layout(int index) const {
+    return m_cimma_layout[index];
+  }
+
   int get_wmma_type() const { return m_wmma_type; }
   //warp中的每一个线程都持有矩阵的一部分。warp中线程加载的fragment的分布是未指定的，并且依赖于目标体系
   //结构，因此矩阵中fragment的身份也是未指定的并且依赖于对象体系结构。如果基础矩阵的形状、布局和元素类
@@ -1371,6 +1376,7 @@ class ptx_instruction : public warp_inst_t {
 
   std::list<int> m_options;
   std::list<int> m_wmma_options;
+  std::list<int> m_cimma_options; //yangjianchao16
   bool m_wide;
   bool m_hi;
   bool m_lo;
@@ -1382,8 +1388,11 @@ class ptx_instruction : public warp_inst_t {
   bool m_to_option;
   unsigned m_cache_option;
   int m_wmma_type;
+  int m_cimma_type;          //yangjianchao16
   int m_wmma_layout[2];
+  int m_cimma_layout[2];     //yangjianchao16
   int m_wmma_configuration;
+  int m_cimma_configuration; //yangjianchao16
   unsigned m_rounding_mode;
   unsigned m_compare_op;
   unsigned m_saturation_mode;
