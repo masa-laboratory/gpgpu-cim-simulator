@@ -267,7 +267,9 @@ void ptx_recognizer::add_instruction() {
   assert(g_shader_core_config != 0);
   ptx_instruction *i = new ptx_instruction(
       g_opcode, g_pred, g_neg_pred, g_pred_mod, g_label, g_operands,
-      g_return_var, g_options, g_wmma_options, g_scalar_type, g_space_spec,
+      g_return_var, g_options, g_wmma_options, 
+      g_cimma_options, //yangjianchao16
+      g_scalar_type, g_space_spec,
       gpgpu_ctx->g_filename, ptx_get_lineno(scanner), linebuf,
       g_shader_core_config, gpgpu_ctx);
   g_instructions.push_back(i);
