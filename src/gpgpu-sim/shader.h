@@ -82,7 +82,8 @@ enum exec_unit_type_t {
   DP = 4,
   INT = 5,
   TENSOR = 6,
-  SPECIALIZED = 7
+  SPECIALIZED = 7,
+  CIM = 8 //yangjianchao16
 };
 
 /*
@@ -426,6 +427,7 @@ class scheduler_unit {  // this can be copied freely, so can be used in std
                  std::vector<shd_warp_t *> *warp, register_set *sp_out,
                  register_set *dp_out, register_set *sfu_out,
                  register_set *int_out, register_set *tensor_core_out,
+                 register_set *cim_out, //yangjianchao16
                  std::vector<register_set *> &spec_cores_out,
                  register_set *mem_out, int id)
       : m_supervised_warps(),
@@ -439,6 +441,7 @@ class scheduler_unit {  // this can be copied freely, so can be used in std
         m_sfu_out(sfu_out),
         m_int_out(int_out),
         m_tensor_core_out(tensor_core_out),
+        m_cim_out(cim_out), //yangjianchao16
         m_spec_cores_out(spec_cores_out),
         m_mem_out(mem_out),
         m_id(id) {}
@@ -527,6 +530,7 @@ class scheduler_unit {  // this can be copied freely, so can be used in std
   register_set *m_sfu_out;
   register_set *m_int_out;
   register_set *m_tensor_core_out;
+  register_set *m_cim_out; //yangjianchao16
   register_set *m_mem_out;
   std::vector<register_set *> &m_spec_cores_out;
   unsigned m_num_issued_last_cycle;
@@ -542,10 +546,13 @@ class lrr_scheduler : public scheduler_unit {
                 std::vector<shd_warp_t *> *warp, register_set *sp_out,
                 register_set *dp_out, register_set *sfu_out,
                 register_set *int_out, register_set *tensor_core_out,
+                register_set *cim_out, //yangjianchao16
                 std::vector<register_set *> &spec_cores_out,
                 register_set *mem_out, int id)
       : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
-                       sfu_out, int_out, tensor_core_out, spec_cores_out,
+                       sfu_out, int_out, tensor_core_out, 
+                       cim_out, //yangjianchao16
+                       spec_cores_out,
                        mem_out, id) {}
   virtual ~lrr_scheduler() {}
   virtual void order_warps();
@@ -561,10 +568,13 @@ class rrr_scheduler : public scheduler_unit {
                 std::vector<shd_warp_t *> *warp, register_set *sp_out,
                 register_set *dp_out, register_set *sfu_out,
                 register_set *int_out, register_set *tensor_core_out,
+                register_set *cim_out, //yangjianchao16
                 std::vector<register_set *> &spec_cores_out,
                 register_set *mem_out, int id)
       : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
-                       sfu_out, int_out, tensor_core_out, spec_cores_out,
+                       sfu_out, int_out, tensor_core_out, 
+                       cim_out, //yangjianchao16
+                       spec_cores_out,
                        mem_out, id) {}
   virtual ~rrr_scheduler() {}
   virtual void order_warps();
@@ -580,10 +590,13 @@ class gto_scheduler : public scheduler_unit {
                 std::vector<shd_warp_t *> *warp, register_set *sp_out,
                 register_set *dp_out, register_set *sfu_out,
                 register_set *int_out, register_set *tensor_core_out,
+                register_set *cim_out, //yangjianchao16
                 std::vector<register_set *> &spec_cores_out,
                 register_set *mem_out, int id)
       : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
-                       sfu_out, int_out, tensor_core_out, spec_cores_out,
+                       sfu_out, int_out, tensor_core_out, 
+                       cim_out, //yangjianchao16
+                       spec_cores_out,
                        mem_out, id) {}
   virtual ~gto_scheduler() {}
   virtual void order_warps();
@@ -599,10 +612,13 @@ class oldest_scheduler : public scheduler_unit {
                    std::vector<shd_warp_t *> *warp, register_set *sp_out,
                    register_set *dp_out, register_set *sfu_out,
                    register_set *int_out, register_set *tensor_core_out,
+                   register_set *cim_out, //yangjianchao16
                    std::vector<register_set *> &spec_cores_out,
                    register_set *mem_out, int id)
       : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
-                       sfu_out, int_out, tensor_core_out, spec_cores_out,
+                       sfu_out, int_out, tensor_core_out, 
+                       cim_out, //yangjianchao16
+                       spec_cores_out,
                        mem_out, id) {}
   virtual ~oldest_scheduler() {}
   virtual void order_warps();
@@ -619,10 +635,13 @@ class two_level_active_scheduler : public scheduler_unit {
                              register_set *sp_out, register_set *dp_out,
                              register_set *sfu_out, register_set *int_out,
                              register_set *tensor_core_out,
+                             register_set *cim_out, //yangjianchao16
                              std::vector<register_set *> &spec_cores_out,
                              register_set *mem_out, int id, char *config_str)
       : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
-                       sfu_out, int_out, tensor_core_out, spec_cores_out,
+                       sfu_out, int_out, tensor_core_out, 
+                       cim_out, //yangjianchao16
+                       spec_cores_out,
                        mem_out, id),
         m_pending_warps() {
     unsigned inner_level_readin;
@@ -669,6 +688,7 @@ class swl_scheduler : public scheduler_unit {
                 std::vector<shd_warp_t *> *warp, register_set *sp_out,
                 register_set *dp_out, register_set *sfu_out,
                 register_set *int_out, register_set *tensor_core_out,
+                register_set *cim_out, //yangjianchao16
                 std::vector<register_set *> &spec_cores_out,
                 register_set *mem_out, int id, char *config_string);
   virtual ~swl_scheduler() {}
@@ -1611,6 +1631,8 @@ enum pipeline_stage_name_t {
   EX_WB,
   ID_OC_TENSOR_CORE,
   OC_EX_TENSOR_CORE,
+  ID_OC_CIM, //yangjianchao16
+  OC_EX_CIM, //yangjianchao16
   N_PIPELINE_STAGES
 };
 
@@ -1618,7 +1640,10 @@ const char *const pipeline_stage_name_decode[] = {
     "ID_OC_SP",          "ID_OC_DP",         "ID_OC_INT", "ID_OC_SFU",
     "ID_OC_MEM",         "OC_EX_SP",         "OC_EX_DP",  "OC_EX_INT",
     "OC_EX_SFU",         "OC_EX_MEM",        "EX_WB",     "ID_OC_TENSOR_CORE",
-    "OC_EX_TENSOR_CORE", "N_PIPELINE_STAGES"};
+    "OC_EX_TENSOR_CORE", 
+    "ID_OC_CIM", "OC_EX_CIM", //yangjianchao16
+    "N_PIPELINE_STAGES"
+    };
 
 struct specialized_unit_params {
   unsigned latency;
@@ -1662,6 +1687,7 @@ class shader_core_config : public core_config {
        this way.
      */
     int num_config_to_read = N_PIPELINE_STAGES - 2 * (!gpgpu_tensor_core_avail);
+    num_config_to_read = num_config_to_read - 2 * (!gpgpu_cim_avail); //yangjianchao16
 
     for (int i = 0; i < num_config_to_read; i++) {
       assert(toks);
@@ -1781,6 +1807,7 @@ class shader_core_config : public core_config {
   int gpgpu_operand_collector_num_units_dp;
   int gpgpu_operand_collector_num_units_sfu;
   int gpgpu_operand_collector_num_units_tensor_core;
+  int gpgpu_operand_collector_num_units_cim; //yangjianchao16
   int gpgpu_operand_collector_num_units_mem;
   int gpgpu_operand_collector_num_units_gen;
   int gpgpu_operand_collector_num_units_int;
@@ -1789,6 +1816,7 @@ class shader_core_config : public core_config {
   unsigned int gpgpu_operand_collector_num_in_ports_dp;
   unsigned int gpgpu_operand_collector_num_in_ports_sfu;
   unsigned int gpgpu_operand_collector_num_in_ports_tensor_core;
+  unsigned int gpgpu_operand_collector_num_in_ports_cim; //yangjianchao16
   unsigned int gpgpu_operand_collector_num_in_ports_mem;
   unsigned int gpgpu_operand_collector_num_in_ports_gen;
   unsigned int gpgpu_operand_collector_num_in_ports_int;
@@ -1797,15 +1825,18 @@ class shader_core_config : public core_config {
   unsigned int gpgpu_operand_collector_num_out_ports_dp;
   unsigned int gpgpu_operand_collector_num_out_ports_sfu;
   unsigned int gpgpu_operand_collector_num_out_ports_tensor_core;
+  unsigned int gpgpu_operand_collector_num_out_ports_cim; //yangjianchao16
   unsigned int gpgpu_operand_collector_num_out_ports_mem;
   unsigned int gpgpu_operand_collector_num_out_ports_gen;
   unsigned int gpgpu_operand_collector_num_out_ports_int;
 
   int gpgpu_num_sp_units;
   int gpgpu_tensor_core_avail;
+  int gpgpu_cim_avail; //yangjianchao16
   int gpgpu_num_dp_units;
   int gpgpu_num_sfu_units;
   int gpgpu_num_tensor_core_units;
+  int gpgpu_num_cim_units; //yangjianchao16
   int gpgpu_num_mem_units;
   int gpgpu_num_int_units;
 
@@ -1826,7 +1857,6 @@ class shader_core_config : public core_config {
   unsigned max_sfu_latency;
   unsigned max_dp_latency;
   unsigned max_tensor_core_latency;
-
   unsigned max_cim_latency; //yangjianchao16
 
   //GPU配置的单个SIMT Core集群中SIMT Core的个数。
@@ -1892,6 +1922,7 @@ struct shader_core_stats_pod {
   double *m_num_sp_acesses;
   double *m_num_sfu_acesses;
   double *m_num_tensor_core_acesses;
+  double *m_num_cim_acesses; //yangjianchao16
   double *m_num_tex_acesses;
   double *m_num_const_acesses;
   double *m_num_dp_acesses;
@@ -1907,6 +1938,7 @@ struct shader_core_stats_pod {
   unsigned *m_num_tlb_accesses;
   unsigned *m_num_sfu_committed;
   unsigned *m_num_tensor_core_committed;
+  unsigned *m_num_cim_committed; //yangjianchao16
   unsigned *m_num_mem_committed;
   unsigned *m_read_regfile_acesses;
   unsigned *m_write_regfile_acesses;
@@ -1916,6 +1948,7 @@ struct shader_core_stats_pod {
   unsigned *m_active_sp_lanes;
   unsigned *m_active_sfu_lanes;
   unsigned *m_active_tensor_core_lanes;
+  unsigned *m_active_cim_lanes; //yangjianchao16
   unsigned *m_active_fu_lanes;
   unsigned *m_active_fu_mem_lanes;
   double *m_active_exu_threads; //For power model
@@ -2025,6 +2058,8 @@ class shader_core_stats : public shader_core_stats_pod {
         (double *)calloc(config->num_shader(), sizeof(double));
     m_num_tensor_core_acesses = 
         (double *)calloc(config->num_shader(), sizeof(double));
+    m_num_cim_acesses =                                         //yangjianchao16
+        (double *)calloc(config->num_shader(), sizeof(double)); //yangjianchao16
     m_num_const_acesses =
         (double *)calloc(config->num_shader(), sizeof(double));
     m_num_tex_acesses =
@@ -2051,6 +2086,8 @@ class shader_core_stats : public shader_core_stats_pod {
         (unsigned *)calloc(config->num_shader(), sizeof(unsigned));
     m_active_tensor_core_lanes =
         (unsigned *)calloc(config->num_shader(), sizeof(unsigned));
+    m_active_cim_lanes =                                            //yangjianchao16
+        (unsigned *)calloc(config->num_shader(), sizeof(unsigned)); //yangjianchao16
     m_active_fu_lanes =
         (unsigned *)calloc(config->num_shader(), sizeof(unsigned));
     m_active_exu_threads =
@@ -2063,6 +2100,8 @@ class shader_core_stats : public shader_core_stats_pod {
         (unsigned *)calloc(config->num_shader(), sizeof(unsigned));
     m_num_tensor_core_committed =
         (unsigned *)calloc(config->num_shader(), sizeof(unsigned));
+    m_num_cim_committed =                                           //yangjianchao16
+        (unsigned *)calloc(config->num_shader(), sizeof(unsigned)); //yangjianchao16
     m_num_mem_committed =
         (unsigned *)calloc(config->num_shader(), sizeof(unsigned));
     m_read_regfile_acesses =
@@ -2115,6 +2154,7 @@ class shader_core_stats : public shader_core_stats_pod {
     free(m_num_sp_acesses);
     free(m_num_sfu_acesses);
     free(m_num_tensor_core_acesses);
+    free(m_num_cim_acesses); //yangjianchao16
     free(m_num_tex_acesses);
     free(m_num_const_acesses);
     free(m_num_dp_acesses);
@@ -2130,6 +2170,7 @@ class shader_core_stats : public shader_core_stats_pod {
     free(m_num_tlb_accesses);
     free(m_num_sfu_committed);
     free(m_num_tensor_core_committed);
+    free(m_num_cim_committed); //yangjianchao16
     free(m_num_mem_committed);
     free(m_read_regfile_acesses);
     free(m_write_regfile_acesses);
@@ -2139,6 +2180,7 @@ class shader_core_stats : public shader_core_stats_pod {
     free(m_active_sp_lanes);
     free(m_active_sfu_lanes);
     free(m_active_tensor_core_lanes);
+    free(m_active_cim_lanes); //yangjianchao16
     free(m_active_fu_lanes);
     free(m_active_exu_threads);
     free(m_active_exu_warps);
@@ -2480,6 +2522,17 @@ class shader_core_ctx : public core_t {
     m_stats->m_active_exu_threads[m_sid]+=active_count;
     m_stats->m_active_exu_warps[m_sid]++;
   }
+
+  void inccim_stat(unsigned active_count,double latency) {                                               //yangjianchao16
+    if(m_config->gpgpu_clock_gated_lanes==false){                                                        //yangjianchao16
+      m_stats->m_num_cim_acesses[m_sid]=m_stats->m_num_cim_acesses[m_sid]+(double)active_count*latency   //yangjianchao16
+        + inactive_lanes_accesses_sfu(active_count, latency);                                            //yangjianchao16
+    }else{                                                                                               //yangjianchao16
+      m_stats->m_num_cim_acesses[m_sid]=m_stats->m_num_cim_acesses[m_sid]+(double)active_count*latency;  //yangjianchao16
+    }                                                                                                    //yangjianchao16
+    m_stats->m_active_exu_threads[m_sid]+=active_count;                                                  //yangjianchao16
+    m_stats->m_active_exu_warps[m_sid]++;                                                                //yangjianchao16
+  }                                                                                                      //yangjianchao16
 
   void inctex_stat(unsigned active_count,double latency) {
     if(m_config->gpgpu_clock_gated_lanes==false){
