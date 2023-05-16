@@ -28,6 +28,7 @@ class gpgpu_context {
     function_info_sm_next_uid = 1;
     //设置Tensor Core的DEBUG模式关闭。
     debug_tensorcore = 0;
+    debug_cim = 0; //yangjianchao16
     //创建CUDA运行时API。
     api = new cuda_runtime_api(this);
     
@@ -52,6 +53,7 @@ class gpgpu_context {
   std::vector<ptx_instruction *>
       s_g_pc_to_insn;  // a direct mapping from PC to instruction
   bool debug_tensorcore;
+  bool debug_cim; //yangjianchao16
 
   // objects pointers for each file
   cuda_runtime_api *api;
