@@ -82,6 +82,7 @@ struct PowerscalingCoefficients{
     double sin_coeff;
     double exp_coeff;
     double tensor_coeff;
+    double cim_coeff; //yangjiancao16
     double tex_coeff;
 };
 #endif
@@ -171,7 +172,7 @@ enum special_operations_t {
   DP_DIV_OP,
   DP___OP,
   TENSOR__OP,
-  SHM_MMA__OP, //yangjianchao16
+  CIMSOR__OP, //yangjianchao16
   TEX__OP
 };
 typedef enum special_operations_t
@@ -183,6 +184,7 @@ enum operation_pipeline_t {
   INTP__OP,
   SFU__OP,
   TENSOR_CORE__OP,
+  CIM__OP, //yangjianchao16
   MEM__OP,
   SPECIALIZED__OP,
 };
@@ -1156,7 +1158,9 @@ class inst_t {
   bool is_imul24() const { return ((sp_op == INT_MUL24_OP));} 
   bool is_imul32() const { return ((sp_op == INT_MUL32_OP));} 
   bool is_idiv() const { return ((sp_op == INT_DIV_OP));}   
-  bool is_sfu() const {return ((sp_op == FP_SQRT_OP) || (sp_op == FP_LG_OP)  || (sp_op == FP_SIN_OP)  || (sp_op == FP_EXP_OP) || (sp_op == TENSOR__OP));}
+  bool is_sfu() const {return ((sp_op == FP_SQRT_OP) || (sp_op == FP_LG_OP)  || (sp_op == FP_SIN_OP)  || (sp_op == FP_EXP_OP) || (sp_op == TENSOR__OP)
+                               || (sp_op == CIMSOR__OP) //yangjianchao16
+                               );}
   bool is_alu() const {return (sp_op == INT__OP);}
 
   unsigned get_num_operands() const { return num_operands; }
