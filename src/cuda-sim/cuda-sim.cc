@@ -912,8 +912,8 @@ void ptx_instruction::set_mul_div_or_other_archop() {
               sp_op=TENSOR__OP;
               break;
             case CIMMA_OP:             //yangjianchao16
-              sp_op = SHM_MMA__OP;   //yangjianchao16
-              break;                  //yangjianchao16
+              sp_op = CIMSOR__OP;      //yangjianchao16
+              break;                   //yangjianchao16
             case TEX_OP:
               sp_op=TEX__OP;
               break;
@@ -959,7 +959,7 @@ void ptx_instruction::set_mul_div_or_other_archop() {
           sp_op=TENSOR__OP;
           break;
         case CIMMA_OP:             //yangjianchao16
-          sp_op = SHM_MMA__OP;     //yangjianchao16
+          sp_op = CIMSOR__OP;      //yangjianchao16
           break;                   //yangjianchao16
         case TEX_OP:
           sp_op=TEX__OP;
@@ -994,7 +994,7 @@ void ptx_instruction::set_mul_div_or_other_archop() {
           sp_op=TENSOR__OP;
           break;
         case CIMMA_OP:             //yangjianchao16
-          sp_op = SHM_MMA__OP;     //yangjianchao16
+          sp_op = CIMSOR__OP;      //yangjianchao16
           break;                   //yangjianchao16
         case TEX_OP:
           sp_op=TEX__OP;
@@ -2376,6 +2376,16 @@ int tensorcore_op(int inst_opcode) {
     return 0;
 }
 
+/*                                                     //yangjianchao16
+判断是否是CIM上的指令，包括 cimma 是则返回1，不是则返回0。 //yangjianchao16
+*/                                                     //yangjianchao16
+int cim_op(int inst_opcode) {                          //yangjianchao16
+  if (inst_opcode == CIM_OP)                           //yangjianchao16
+    return 1;                                          //yangjianchao16
+  else                                                 //yangjianchao16
+    return 0;                                          //yangjianchao16
+}                                                      //yangjianchao16
+
 /*
 时序模型通过调用 ptx_thread_info 类的 ptx_exec_inst 方法将线程的功能状态提前一个指令。这是在
     core_t::execute_warp_inst_t
@@ -2548,13 +2558,26 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
         }
       }
 
+      if (inst_opcode == CIMMA_OP) {                                       //yangjianchao16
+        if (inst.active_count() != MAX_WARP_SIZE) {                        //yangjianchao16
+          printf("@@@ inst.active_count():%d--MAX_WARP_SIZE:%d\n",         //yangjianchao16
+                 inst.active_count(), MAX_WARP_SIZE);                      //yangjianchao16
+          printf(                                                          //yangjianchao16
+              "CIM operation are warp synchronous operation. All the "     //yangjianchao16
+              "threads needs to be active.");                              //yangjianchao16
+          assert(0);                                                       //yangjianchao16
+        }                                                                  //yangjianchao16
+      }                                                                    //yangjianchao16
+
       // Tensorcore is warp synchronous operation. So these instructions needs
       // to be executed only once. To make the simulation faster removing the
       // redundant tensorcore operation
       //Tensorcore是warp同步操作。所以这些指令只需要执行一次。为了使模拟更快地去除冗余的Tensorcore操
       //作。
-      if (!tensorcore_op(inst_opcode) ||
-          ((tensorcore_op(inst_opcode)) && (lane_id == 0))) {
+      if ((!tensorcore_op(inst_opcode) && !cim_op(inst_opcode)) ||  //yangjianchao16
+          ((tensorcore_op(inst_opcode)) && (lane_id == 0))
+          || ((cim_op(inst_opcode)) && (lane_id == 0))  //yangjianchao16
+          ) {
         switch (inst_opcode) {
 #define OP_DEF(OP, FUNC, STR, DST, CLASSIFICATION) \
   case OP:                                         \
