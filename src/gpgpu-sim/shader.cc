@@ -139,6 +139,9 @@ void shader_core_ctx::create_front_pipeline() {
     if (m_config->gpgpu_tensor_core_avail)
       assert(m_config->gpgpu_num_sched_per_core ==
              m_pipeline_reg[ID_OC_TENSOR_CORE].get_size());
+    if (m_config->gpgpu_cim_avail)                            //yangjianchao16
+      assert(m_config->gpgpu_num_sched_per_core ==            //yangjianchao16
+             m_pipeline_reg[ID_OC_CIM].get_size());           //yangjianchao16
     if (m_config->gpgpu_num_dp_units > 0)
       assert(m_config->gpgpu_num_sched_per_core ==
              m_pipeline_reg[ID_OC_DP].get_size());
@@ -215,7 +218,9 @@ void shader_core_ctx::create_schedulers() {
             m_stats, this, m_scoreboard, m_simt_stack, &m_warp,
             &m_pipeline_reg[ID_OC_SP], &m_pipeline_reg[ID_OC_DP],
             &m_pipeline_reg[ID_OC_SFU], &m_pipeline_reg[ID_OC_INT],
-            &m_pipeline_reg[ID_OC_TENSOR_CORE], m_specilized_dispatch_reg,
+            &m_pipeline_reg[ID_OC_TENSOR_CORE], 
+            &m_pipeline_reg[ID_OC_CIM], //yangjianchao16
+            m_specilized_dispatch_reg,
             &m_pipeline_reg[ID_OC_MEM], i));
         break;
       case CONCRETE_SCHEDULER_TWO_LEVEL_ACTIVE:
@@ -223,7 +228,9 @@ void shader_core_ctx::create_schedulers() {
             m_stats, this, m_scoreboard, m_simt_stack, &m_warp,
             &m_pipeline_reg[ID_OC_SP], &m_pipeline_reg[ID_OC_DP],
             &m_pipeline_reg[ID_OC_SFU], &m_pipeline_reg[ID_OC_INT],
-            &m_pipeline_reg[ID_OC_TENSOR_CORE], m_specilized_dispatch_reg,
+            &m_pipeline_reg[ID_OC_TENSOR_CORE], 
+            &m_pipeline_reg[ID_OC_CIM], //yangjianchao16
+            m_specilized_dispatch_reg,
             &m_pipeline_reg[ID_OC_MEM], i, m_config->gpgpu_scheduler_string));
         break;
       case CONCRETE_SCHEDULER_GTO:
@@ -231,7 +238,9 @@ void shader_core_ctx::create_schedulers() {
             m_stats, this, m_scoreboard, m_simt_stack, &m_warp,
             &m_pipeline_reg[ID_OC_SP], &m_pipeline_reg[ID_OC_DP],
             &m_pipeline_reg[ID_OC_SFU], &m_pipeline_reg[ID_OC_INT],
-            &m_pipeline_reg[ID_OC_TENSOR_CORE], m_specilized_dispatch_reg,
+            &m_pipeline_reg[ID_OC_TENSOR_CORE], 
+            &m_pipeline_reg[ID_OC_CIM], //yangjianchao16
+            m_specilized_dispatch_reg,
             &m_pipeline_reg[ID_OC_MEM], i));
         break;
       case CONCRETE_SCHEDULER_RRR:
@@ -239,7 +248,9 @@ void shader_core_ctx::create_schedulers() {
             m_stats, this, m_scoreboard, m_simt_stack, &m_warp,
             &m_pipeline_reg[ID_OC_SP], &m_pipeline_reg[ID_OC_DP],
             &m_pipeline_reg[ID_OC_SFU], &m_pipeline_reg[ID_OC_INT],
-            &m_pipeline_reg[ID_OC_TENSOR_CORE], m_specilized_dispatch_reg,
+            &m_pipeline_reg[ID_OC_TENSOR_CORE], 
+            &m_pipeline_reg[ID_OC_CIM], //yangjianchao16
+            m_specilized_dispatch_reg,
             &m_pipeline_reg[ID_OC_MEM], i));
         break;
       case CONCRETE_SCHEDULER_OLDEST_FIRST:
@@ -247,7 +258,9 @@ void shader_core_ctx::create_schedulers() {
             m_stats, this, m_scoreboard, m_simt_stack, &m_warp,
             &m_pipeline_reg[ID_OC_SP], &m_pipeline_reg[ID_OC_DP],
             &m_pipeline_reg[ID_OC_SFU], &m_pipeline_reg[ID_OC_INT],
-            &m_pipeline_reg[ID_OC_TENSOR_CORE], m_specilized_dispatch_reg,
+            &m_pipeline_reg[ID_OC_TENSOR_CORE], 
+            &m_pipeline_reg[ID_OC_CIM], //yangjianchao16
+            m_specilized_dispatch_reg,
             &m_pipeline_reg[ID_OC_MEM], i));
         break;
       case CONCRETE_SCHEDULER_WARP_LIMITING:
@@ -255,7 +268,9 @@ void shader_core_ctx::create_schedulers() {
             m_stats, this, m_scoreboard, m_simt_stack, &m_warp,
             &m_pipeline_reg[ID_OC_SP], &m_pipeline_reg[ID_OC_DP],
             &m_pipeline_reg[ID_OC_SFU], &m_pipeline_reg[ID_OC_INT],
-            &m_pipeline_reg[ID_OC_TENSOR_CORE], m_specilized_dispatch_reg,
+            &m_pipeline_reg[ID_OC_TENSOR_CORE], 
+            &m_pipeline_reg[ID_OC_CIM], //yangjianchao16
+            m_specilized_dispatch_reg,
             &m_pipeline_reg[ID_OC_MEM], i, m_config->gpgpu_scheduler_string));
         break;
       default:
@@ -275,7 +290,9 @@ void shader_core_ctx::create_schedulers() {
 
 void shader_core_ctx::create_exec_pipeline() {
   // op collector configuration
-  enum { SP_CUS, DP_CUS, SFU_CUS, TENSOR_CORE_CUS, INT_CUS, MEM_CUS, GEN_CUS };
+  enum { SP_CUS, DP_CUS, SFU_CUS, TENSOR_CORE_CUS, 
+         CIM_CUS, //yangjianchao16
+         INT_CUS, MEM_CUS, GEN_CUS };
 
   opndcoll_rfu_t::port_vector_t in_ports;
   opndcoll_rfu_t::port_vector_t out_ports;
@@ -298,6 +315,10 @@ void shader_core_ctx::create_exec_pipeline() {
       in_ports.push_back(&m_pipeline_reg[ID_OC_TENSOR_CORE]);
       out_ports.push_back(&m_pipeline_reg[OC_EX_TENSOR_CORE]);
     }
+    if (m_config->gpgpu_cim_avail) {                   //yangjianchao16
+      in_ports.push_back(&m_pipeline_reg[ID_OC_CIM]);  //yangjianchao16
+      out_ports.push_back(&m_pipeline_reg[OC_EX_CIM]); //yangjianchao16
+    }                                                  //yangjianchao16
     if (m_config->gpgpu_num_dp_units > 0) {
       in_ports.push_back(&m_pipeline_reg[ID_OC_DP]);
       out_ports.push_back(&m_pipeline_reg[OC_EX_DP]);
@@ -330,6 +351,10 @@ void shader_core_ctx::create_exec_pipeline() {
         TENSOR_CORE_CUS,
         m_config->gpgpu_operand_collector_num_units_tensor_core,
         m_config->gpgpu_operand_collector_num_out_ports_tensor_core);
+    m_operand_collector.add_cu_set(                           //yangjianchao16
+        CIM_CUS,                                              //yangjianchao16
+        m_config->gpgpu_operand_collector_num_units_cim,      //yangjianchao16
+        m_config->gpgpu_operand_collector_num_out_ports_cim); //yangjianchao16
     m_operand_collector.add_cu_set(
         SFU_CUS, m_config->gpgpu_operand_collector_num_units_sfu,
         m_config->gpgpu_operand_collector_num_out_ports_sfu);
@@ -380,6 +405,16 @@ void shader_core_ctx::create_exec_pipeline() {
       in_ports.clear(), out_ports.clear(), cu_sets.clear();
     }
 
+    for (unsigned i = 0;                                                //yangjianchao16
+         i < m_config->gpgpu_operand_collector_num_in_ports_cim; i++) { //yangjianchao16
+      in_ports.push_back(&m_pipeline_reg[ID_OC_CIM]);                   //yangjianchao16
+      out_ports.push_back(&m_pipeline_reg[OC_EX_CIM]);                  //yangjianchao16
+      cu_sets.push_back((unsigned)CIM_CUS);                             //yangjianchao16
+      cu_sets.push_back((unsigned)GEN_CUS);                             //yangjianchao16
+      m_operand_collector.add_port(in_ports, out_ports, cu_sets);       //yangjianchao16
+      in_ports.clear(), out_ports.clear(), cu_sets.clear();             //yangjianchao16
+    }                                                                   //yangjianchao16
+
     for (unsigned i = 0; i < m_config->gpgpu_operand_collector_num_in_ports_mem;
          i++) {
       in_ports.push_back(&m_pipeline_reg[ID_OC_MEM]);
@@ -406,6 +441,7 @@ void shader_core_ctx::create_exec_pipeline() {
   m_num_function_units =
       m_config->gpgpu_num_sp_units + m_config->gpgpu_num_dp_units +
       m_config->gpgpu_num_sfu_units + m_config->gpgpu_num_tensor_core_units +
+      m_config->gpgpu_num_cim_units +                                         //yangjianchao16
       m_config->gpgpu_num_int_units + m_config->m_specialized_unit_num +
       1;  // sp_unit, sfu, dp, tensor, int, ldst_unit
   // m_dispatch_port = new enum pipeline_stage_name_t[ m_num_function_units ];
@@ -441,6 +477,12 @@ void shader_core_ctx::create_exec_pipeline() {
     m_dispatch_port.push_back(ID_OC_TENSOR_CORE);
     m_issue_port.push_back(OC_EX_TENSOR_CORE);
   }
+
+  for (unsigned k = 0; k < m_config->gpgpu_num_cim_units; k++) {          //yangjianchao16
+    m_fu.push_back(new cim(&m_pipeline_reg[EX_WB], m_config, this, k));   //yangjianchao16
+    m_dispatch_port.push_back(ID_OC_CIM);                                 //yangjianchao16
+    m_issue_port.push_back(OC_EX_CIM);                                    //yangjianchao16
+  }                                                                       //yangjianchao16
 
   for (unsigned j = 0; j < m_config->m_specialized_unit.size(); j++) {
     for (unsigned k = 0; k < m_config->m_specialized_unit[j].num_units; k++) {
@@ -1415,6 +1457,7 @@ void scheduler_unit::cycle() {
             } else {
               // This code need to be refactored
               if (pI->op != TENSOR_CORE_OP && pI->op != SFU_OP &&
+                  pI->op != CIM_OP &&           //yangjianchao16
                   pI->op != DP_OP && !(pI->op >= SPEC_UNIT_START_ID)) 
               {
                 bool execute_on_SP = false;
@@ -1541,7 +1584,27 @@ void scheduler_unit::cycle() {
                   warp_inst_issued = true;
                   previous_issued_inst_exec_type = exec_unit_type_t::TENSOR;
                 }
-              } else if ((pI->op >= SPEC_UNIT_START_ID) &&
+              }
+
+              else if ((pI->op == CIM_OP) &&                                      //yangjianchao16
+                         !(diff_exec_units && previous_issued_inst_exec_type ==   //yangjianchao16
+                                                  exec_unit_type_t::CIM))         //yangjianchao16
+              {                                                                   //yangjianchao16
+                bool cim_pipe_avail =                                             //yangjianchao16
+                    (m_shader->m_config->gpgpu_num_cim_units > 0) &&              //yangjianchao16
+                    m_cim_out->has_free(                                          //yangjianchao16
+                        m_shader->m_config->sub_core_model, m_id);                //yangjianchao16
+                if (cim_pipe_avail) {                                             //yangjianchao16
+                  m_shader->issue_warp(*m_cim_out, pI, active_mask,               //yangjianchao16
+                                       warp_id, m_id);                            //yangjianchao16
+                  issued++;                                                       //yangjianchao16
+                  issued_inst = true;                                             //yangjianchao16
+                  warp_inst_issued = true;                                        //yangjianchao16
+                  previous_issued_inst_exec_type = exec_unit_type_t::CIM;         //yangjianchao16
+                }                                                                 //yangjianchao16
+              }                                                                   //yangjianchao16
+              
+              else if ((pI->op >= SPEC_UNIT_START_ID) &&
                          !(diff_exec_units &&
                            previous_issued_inst_exec_type ==
                                exec_unit_type_t::SPECIALIZED)) {
@@ -1741,10 +1804,13 @@ swl_scheduler::swl_scheduler(shader_core_stats *stats, shader_core_ctx *shader,
                              register_set *sp_out, register_set *dp_out,
                              register_set *sfu_out, register_set *int_out,
                              register_set *tensor_core_out,
+                             register_set *cim_out, //yangjianchao16
                              std::vector<register_set *> &spec_cores_out,
                              register_set *mem_out, int id, char *config_string)
     : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
-                     sfu_out, int_out, tensor_core_out, spec_cores_out, mem_out,
+                     sfu_out, int_out, tensor_core_out, 
+                     cim_out, //yangjianchao16
+                     spec_cores_out, mem_out,
                      id) {
   unsigned m_prioritization_readin;
   int ret = sscanf(config_string, "warp_limiting:%d:%d",
@@ -2413,6 +2479,15 @@ void tensor_core::issue(register_set &source_reg) {
   pipelined_simd_unit::issue(source_reg);
 }
 
+void cim::issue(register_set &source_reg) {                                      //yangjianchao16
+  warp_inst_t **ready_reg =                                                      //yangjianchao16
+      source_reg.get_ready(m_config->sub_core_model, m_issue_reg_id);            //yangjianchao16
+  // m_core->incexecstat((*ready_reg));                                          //yangjianchao16
+  (*ready_reg)->op_pipe = CIM__OP;                                               //yangjianchao16
+  m_core->incsfu_stat(m_core->get_config()->warp_size, (*ready_reg)->latency);   //yangjianchao16
+  pipelined_simd_unit::issue(source_reg);                                        //yangjianchao16
+}                                                                                //yangjianchao16
+
 /*
 lane的意思为一个warp中有32个线程，而在流水线寄存器中可能暂存了很多条指令，这些指令的每对应的线程掩码的每一
 位都是一个lane。即遍历流水线寄存器中的非空指令，返回所有指令的整体线程掩码（所有指令线程掩码的或值）。
@@ -2472,6 +2547,10 @@ void sfu::active_lanes_in_pipeline() {
   m_core->incfumemactivelanes_stat(active_count);
 }
 
+/*
+lane的意思为一个warp中有32个线程，而在流水线寄存器中可能暂存了很多条指令，这些指令的每对应的线程掩码的每一
+位都是一个lane。即遍历流水线寄存器中的非空指令，返回所有指令的整体线程掩码（所有指令线程掩码的或值）。
+*/
 void tensor_core::active_lanes_in_pipeline() {
   unsigned active_count = pipelined_simd_unit::get_active_lanes_in_pipeline();
   assert(active_count <= m_core->get_config()->warp_size);
@@ -3316,6 +3395,8 @@ void shader_core_ctx::incexecstat(warp_inst_t *&inst)
     case TENSOR__OP:
       inctensor_stat(inst->active_count(), scaling_coeffs->tensor_coeff);
       break;
+    case CIMSOR__OP:                                                   //yangjianchao16
+      inccim_stat(inst->active_count(), scaling_coeffs->cim_coeff);    //yangjianchao16
     case TEX__OP:
       inctex_stat(inst->active_count(), scaling_coeffs->tex_coeff);
       break;
