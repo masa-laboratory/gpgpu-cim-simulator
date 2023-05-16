@@ -1501,6 +1501,7 @@ ptx_instruction::ptx_instruction(
     int opcode, const symbol *pred, int neg_pred, int pred_mod, symbol *label,
     const std::list<operand_info> &operands, const operand_info &return_var,
     const std::list<int> &options, const std::list<int> &wmma_options,
+    const std::list<int> &cimma_options, //yangjianchao16
     const std::list<int> &scalar_type, memory_space_t space_spec,
     const char *file, unsigned line, const char *source,
     const core_config *config, gpgpu_context *ctx)
@@ -1520,6 +1521,7 @@ ptx_instruction::ptx_instruction(
   m_return_var = return_var;
   m_options = options;
   m_wmma_options = wmma_options;
+  m_cimma_options = cimma_options; //yangjianchao16
   m_wide = false;
   m_hi = false;
   m_lo = false;
@@ -1564,6 +1566,28 @@ ptx_instruction::ptx_instruction(
         break;
     }
   }
+
+  // cimma.shmma.synchro.rowmajor.colmajor.m128n128k8.f32.f32 %rd39 %rd37 %rd38; //yangjianchao16
+  n = 1;                                                                         //yangjianchao16
+  rr = 0;                                                                        //yangjianchao16
+  for (i = cimma_options.begin(); i != cimma_options.end(); i++, n++) {          //yangjianchao16
+    int last_ptx_inst_option = *i;                                               //yangjianchao16
+    switch (last_ptx_inst_option) {                                              //yangjianchao16
+      case SHMMA:                                                                //yangjianchao16
+        m_cimma_type = last_ptx_inst_option;                                      //yangjianchao16
+        break;                                                                   //yangjianchao16
+      case ROWMAJOR:                                                             //yangjianchao16
+      case COLMAJOR:                                                             //yangjianchao16
+        m_cimma_layout[rr++] = last_ptx_inst_option;                              //yangjianchao16
+        break;                                                                   //yangjianchao16
+      case M128N128K8:                                                           //yangjianchao16
+        break;                                                                   //yangjianchao16
+      default:                                                                   //yangjianchao16
+        assert(0);                                                               //yangjianchao16
+        break;                                                                   //yangjianchao16
+    }                                                                            //yangjianchao16
+  }                                                                              //yangjianchao16
+
   rr = 0;
   n = 1;
   for (i = options.begin(); i != options.end(); i++, n++) {
