@@ -2326,10 +2326,15 @@ void mapping(int thread, int wmma_type, int wmma_layout, int type, int index,
   //printf("#### thid: %d, row: %d, col: %d, offset: %d\n", thread, row, col, offset);
 }
 
-void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) { //yangjianchao16
-  printf("@@@@@@@@@@\n");
-  return; //yangjianchao16
-} //yangjianchao16
+/*
+cimma的功能模拟。
+*/
+void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
+
+  
+  printf("@@@@@@@@@@\n");                                                          //yangjianchao16
+  return;                                                                          //yangjianchao16
+}                                                                                  //yangjianchao16
 
 /*
 wmma的功能模拟。
