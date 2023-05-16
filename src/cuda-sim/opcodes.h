@@ -74,8 +74,11 @@ enum wmma_type {
   M8N32K16
 
 };
+//cimma.shmma.synchro.rowmajor.colmajor.m128n128k8.f32.f32 %rd39 %rd37 %rd38;
 enum cimma_type { //yangjianchao16
-  CIMMA,          //yangjianchao16
+  SHMMA,          //yangjianchao16
+  ROWMAJOR,       //yangjianchao16
+  COLMAJOR,       //yangjianchao16
   M128N128K8      //yangjianchao16
 };                //yangjianchao16
 #endif
