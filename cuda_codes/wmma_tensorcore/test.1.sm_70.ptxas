@@ -1,0 +1,5 @@
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z17WMMAF16TensorCoreP6__halfS0_PfS1_' for 'sm_70'
+ptxas info    : Function properties for _Z17WMMAF16TensorCoreP6__halfS0_PfS1_
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 38 registers, 384 bytes cmem[0]
