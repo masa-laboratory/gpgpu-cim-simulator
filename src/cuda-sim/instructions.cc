@@ -2330,9 +2330,66 @@ void mapping(int thread, int wmma_type, int wmma_layout, int type, int index,
 cimma的功能模拟。
 */
 void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
-
+  printf("@@@ pI->get_source(): %s\n", pI->get_source());
+  printf("@@@ pI->dst().m_addr_space: %d\n", pI->dst().get_addr_space());
+  printf("@@@ pI->dst().reg_num(): %d\n", pI->dst().reg_num());
+  printf("@@@ pI->src1().reg_num(): %d\n", pI->src1().reg_num());
+  printf("@@@ pI->src2().reg_num(): %d\n", pI->src2().reg_num());
+  printf("@@@ pI->uid(): %d\n", pI->uid());
+  printf("@@@ pI->get_num_operands(): %d\n", pI->get_num_operands());
+  printf("@@@ pI->dst().name(): %s\n", pI->dst().name().c_str());
+  printf("@@@ pI->src1().name(): %s\n", pI->src1().name().c_str());
+  printf("@@@ pI->src2().name(): %s\n", pI->src2().name().c_str());
+  printf("@@@ pI->dst().is_reg(): %d\n", pI->dst().is_reg());
+  printf("@@@ pI->src1().is_reg(): %d\n", pI->src1().is_reg());
+  printf("@@@ pI->src2().is_reg(): %d\n", pI->src2().is_reg());
   
-  printf("@@@@@@@@@@\n");                                                          //yangjianchao16
+  
+  const operand_info &dst = pI->dst();
+  const operand_info &src1 = pI->src1();
+
+  /***********************************************
+  const operand_info &dst = pI->dst();
+  const operand_info &src1 = pI->src1();
+
+  unsigned type = pI->get_type();
+
+  ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
+  ptx_reg_t data;
+  memory_space_t space = pI->get_space();
+  unsigned vector_spec = pI->get_vector();
+
+  memory_space *mem = NULL;
+  addr_t addr = src1_data.u32;
+
+  decode_space(space, thread, src1, mem, addr);
+
+  size_t size;
+  int t;
+  data.u64 = 0;
+  type_info_key::type_decode(type, size, t);
+  if (!vector_spec) {
+    mem->read(addr, size / 8, &data.s64);
+    if (type == S16_TYPE || type == S32_TYPE) sign_extend(data, size, dst);
+    thread->set_operand_value(dst, data, type, thread, pI);
+  } else {
+    ptx_reg_t data1, data2, data3, data4;
+    mem->read(addr, size / 8, &data1.s64);
+    mem->read(addr + size / 8, size / 8, &data2.s64);
+    if (vector_spec != V2_TYPE) {  // either V3 or V4
+      mem->read(addr + 2 * size / 8, size / 8, &data3.s64);
+      if (vector_spec != V3_TYPE) {  // v4
+        mem->read(addr + 3 * size / 8, size / 8, &data4.s64);
+        thread->set_vector_operand_values(dst, data1, data2, data3, data4);
+      } else  // v3
+        thread->set_vector_operand_values(dst, data1, data2, data3, data3);
+    } else  // v2
+      thread->set_vector_operand_values(dst, data1, data2, data2, data2);
+  }
+  thread->m_last_effective_address = addr;
+  thread->m_last_memory_space = space;
+  ************************************************/
+  
   return;                                                                          //yangjianchao16
 }                                                                                  //yangjianchao16
 
@@ -3836,12 +3893,21 @@ void decode_space(memory_space_t &space, ptx_thread_info *thread,
   }
 }
 
+/*
+Load指令实现。
+*/
 void ld_exec(const ptx_instruction *pI, ptx_thread_info *thread) {
+  //获取目的操作数。
   const operand_info &dst = pI->dst();
+  //获取源操作数。
   const operand_info &src1 = pI->src1();
 
+  //获取加载的数据的类型。例如：
+  //ld.global.nc.v4.f32 {%f271, %f270, %f269, %f268}, [%rd2];的类型为F32_TYPE。
+  //ld.param.u64 %rd9, [_Z5SgemmILi128ELi8ELi128ELi8ELi8ELb0EEvPfS0_S0_iii_param_0];的类型为U64_TYPE。
+  //ld.global.nc.v4.u32 {%r76, %r77, %r78, %r79}, [%rd13];的类型为U32_TYPE。
   unsigned type = pI->get_type();
-
+  
   ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
   ptx_reg_t data;
   memory_space_t space = pI->get_space();
