@@ -2330,23 +2330,47 @@ void mapping(int thread, int wmma_type, int wmma_layout, int type, int index,
 cimma的功能模拟。
 */
 void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
-  printf("@@@ pI->get_source(): %s\n", pI->get_source());
-  printf("@@@ pI->dst().m_addr_space: %d\n", pI->dst().get_addr_space());
-  printf("@@@ pI->dst().reg_num(): %d\n", pI->dst().reg_num());
-  printf("@@@ pI->src1().reg_num(): %d\n", pI->src1().reg_num());
-  printf("@@@ pI->src2().reg_num(): %d\n", pI->src2().reg_num());
-  printf("@@@ pI->uid(): %d\n", pI->uid());
-  printf("@@@ pI->get_num_operands(): %d\n", pI->get_num_operands());
-  printf("@@@ pI->dst().name(): %s\n", pI->dst().name().c_str());
-  printf("@@@ pI->src1().name(): %s\n", pI->src1().name().c_str());
-  printf("@@@ pI->src2().name(): %s\n", pI->src2().name().c_str());
-  printf("@@@ pI->dst().is_reg(): %d\n", pI->dst().is_reg());
-  printf("@@@ pI->src1().is_reg(): %d\n", pI->src1().is_reg());
-  printf("@@@ pI->src2().is_reg(): %d\n", pI->src2().is_reg());
-  
-  
+  //打印指令。
+  pI->print_insn();
+
+  // printf("@@@ pI->get_source(): %s\n", pI->get_source());
+  // printf("@@@ pI->dst().m_addr_space: %d\n", pI->dst().get_addr_space());
+  // printf("@@@ pI->dst().reg_num(): %d\n", pI->dst().reg_num());
+  // printf("@@@ pI->src1().reg_num(): %d\n", pI->src1().reg_num());
+  // printf("@@@ pI->src2().reg_num(): %d\n", pI->src2().reg_num());
+  // printf("@@@ pI->uid(): %d\n", pI->uid());
+  // printf("@@@ pI->get_num_operands(): %d\n", pI->get_num_operands());
+  // printf("@@@ pI->dst().name(): %s\n", pI->dst().name().c_str());
+  // printf("@@@ pI->src1().name(): %s\n", pI->src1().name().c_str());
+  // printf("@@@ pI->src2().name(): %s\n", pI->src2().name().c_str());
+  // printf("@@@ pI->dst().is_reg(): %d\n", pI->dst().is_reg());
+  // printf("@@@ pI->src1().is_reg(): %d\n", pI->src1().is_reg());
+  // printf("@@@ pI->src2().is_reg(): %d\n", pI->src2().is_reg());
+
   const operand_info &dst = pI->dst();
   const operand_info &src1 = pI->src1();
+  const operand_info &src2 = pI->src2();
+
+  unsigned type = pI->get_type();
+  // printf("@@@ pI->get_type(): %d\n", pI->get_type());
+
+  int tid = core->get_gpu()->is_functional_sim() ? 
+            (inst.warp_id_func() * core->get_warp_size()) :
+            (inst.warp_id() * core->get_warp_size());
+
+  ptx_thread_info* thread = core->get_thread_info()[tid];
+
+  ptx_reg_t dst_data = thread->get_operand_value(dst, dst, type, thread, 1);
+  ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
+  ptx_reg_t src2_data = thread->get_operand_value(src2, dst, type, thread, 1);
+  
+  addr_t dst_addr = dst_data.u32;
+  addr_t src1_addr = src1_data.u32;
+  addr_t src2_addr = src2_data.u32;
+
+  printf("dst_addr, src1_addr, src2_addr: %llu, %llu, %llu\n", dst_addr, src1_addr, src2_addr);
+
+  
 
   /***********************************************
   const operand_info &dst = pI->dst();
@@ -2397,6 +2421,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
 wmma的功能模拟。
 */
 void mma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {
+  printf("@@@ inst.warp_id_func(): %d\n", inst.warp_id_func());
   int i, j, k, thrd;
   int row, col, offset;
   //A、B、C、D矩阵，完成 D=A*B+C 操作。
@@ -4090,7 +4115,7 @@ void mma_ld_impl(const ptx_instruction *pI, core_t *core, warp_inst_t &inst) {
   ptx_thread_info *thread;
 
   //打印PI指令的信息。
-  pI->print_insn();
+  // pI->print_insn();
 
   //计算当前warp的起始线程id。
   if (core->get_gpu()->is_functional_sim())
