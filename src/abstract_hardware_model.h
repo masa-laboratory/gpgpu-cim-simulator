@@ -231,8 +231,8 @@ extern std::map<void *, void **> pinned_memory;
 extern std::map<void *, size_t> pinned_memory_size;
 
 /*
-内核函数的信息。
-kernel_info_t 对象包含GPU网格和块维度、与内核入口点关联的 function_info 对象以及为内核参数分配的内存。
+内核函数的信息。kernel_info_t 对象包含GPU网格和块维度、与内核入口点关联的 function_info 对象以
+及为内核参数分配的内存。
 */
 class kernel_info_t {
  public:
@@ -257,8 +257,8 @@ class kernel_info_t {
   //  inc_running()增加一个正在运行的Core，将m_num_cores_running加1；
   //  dec_running()减少一个正在运行的Core，首先判断m_num_cores_running是否大于0，继而减1；
   //  running()返回是否有正在运行的Core，True 或 False；
-  //  done()返回没有更多的CTA去运行，m_num_cores_running的值也为零。即kernel_info_t已经完成它所
-  //        有CTA的执行。
+  //  done()返回没有更多的CTA需要执行，m_num_cores_running的值也为零，代表所有正在执行的kernel已
+  //        经全部执行完。即kernel_info_t已经完成它所有CTA的执行。
   void inc_running() { m_num_cores_running++; }
   void dec_running() {
     assert(m_num_cores_running > 0);
@@ -331,7 +331,9 @@ class kernel_info_t {
   }
   //返回当前 kernel_info_t 对象的唯一标识号。
   unsigned get_uid() const { return m_uid; }
+  //返回当前 kernel_info_t 内核对象的内核名。
   std::string get_name() const { return name(); }
+  //返回当前 kernel_info_t 内核对象的内核名。
   std::string name() const;
   //m_active_threads的定义：
   //    std::list<class ptx_thread_info *> m_active_threads;
@@ -339,7 +341,7 @@ class kernel_info_t {
   std::list<class ptx_thread_info *> &active_threads() {
     return m_active_threads;
   }
-  
+  //返回kernel_info_t对象的参数内存空间。
   class memory_space *get_param_memory() {
     return m_param_mem;
   }
@@ -364,24 +366,30 @@ class kernel_info_t {
   kernel_info_t(const kernel_info_t &);   // disable copy constructor
   void operator=(const kernel_info_t &);  // disable copy operator
 
+  //kernel的入口函数，m_kernel_entry是 function_info 对象。
   class function_info *m_kernel_entry;
 
+  //kernel_info_t对象的唯一标识符。
   unsigned m_uid;
 
   // These maps contain the snapshot of the texture mappings at kernel launch
   std::map<std::string, const struct cudaArray *> m_NameToCudaArray;
   std::map<std::string, const struct textureInfo *> m_NameToTextureInfo;
-
+  
+  //Grid和Block的维度。
   dim3 m_grid_dim;
   dim3 m_block_dim;
   
-  //m_next_cta是用于标识下一个要执行的CTA（Compute Thread Array）的变量
+  //m_next_cta是用于标识下一个要执行的CTA（Compute Thread Array）的变量。
   dim3 m_next_cta;
   dim3 m_next_tid;
 
+  //当前正在运行的SIMT Core的数量。
   unsigned m_num_cores_running;
 
+  //当前处于活跃状态的线程列表。
   std::list<class ptx_thread_info *> m_active_threads;
+  //kernel_info_t对象的参数内存空间。
   class memory_space *m_param_mem;
 
  public:
