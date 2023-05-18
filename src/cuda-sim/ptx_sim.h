@@ -333,20 +333,27 @@ gpgpu_t 中，并通过 ptx_thread_info 中的接口进行访问（例如，ptx_
 */
 class ptx_thread_info {
  public:
+  //析构函数。
   ~ptx_thread_info();
+  //构造函数。
   ptx_thread_info(kernel_info_t &kernel);
 
   void init(gpgpu_t *gpu, core_t *core, unsigned sid, unsigned cta_id,
             unsigned wid, unsigned tid, bool fsim) {
     m_gpu = gpu;
     m_core = core;
+    //线程所在SM的id。
     m_hw_sid = sid;
+    //线程所在CTA的id。
     m_hw_ctaid = cta_id;
+    //线程所在warp的id。
     m_hw_wid = wid;
+    //线程的id。
     m_hw_tid = tid;
+    //功能模拟。
     m_functionalSimulationMode = fsim;
   }
-
+  //解码阶段，定时模拟器从给定PC的函数模拟器获得指令。这是通过调用ptx_fetch_inst函数完成的。
   void ptx_fetch_inst(inst_t &inst) const;
   void ptx_exec_inst(warp_inst_t &inst, unsigned lane_id);
 
