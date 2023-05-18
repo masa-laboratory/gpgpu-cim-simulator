@@ -1574,11 +1574,11 @@ ptx_instruction::ptx_instruction(
     int last_ptx_inst_option = *i;                                               //yangjianchao16
     switch (last_ptx_inst_option) {                                              //yangjianchao16
       case SHMMA:                                                                //yangjianchao16
-        m_cimma_type = last_ptx_inst_option;                                      //yangjianchao16
+        m_cimma_type = last_ptx_inst_option;                                     //yangjianchao16
         break;                                                                   //yangjianchao16
       case ROWMAJOR:                                                             //yangjianchao16
       case COLMAJOR:                                                             //yangjianchao16
-        m_cimma_layout[rr++] = last_ptx_inst_option;                              //yangjianchao16
+        m_cimma_layout[rr++] = last_ptx_inst_option;                             //yangjianchao16
         break;                                                                   //yangjianchao16
       case M128N128K8:                                                           //yangjianchao16
         break;                                                                   //yangjianchao16
