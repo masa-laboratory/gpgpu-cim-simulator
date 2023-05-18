@@ -72,7 +72,8 @@
         "csignal": "cpp",
         "strstream": "cpp",
         "codecvt": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "*.ipp": "cpp"
     },
     "editor.tokenColorCustomizations": {
         "textMateRules": [
