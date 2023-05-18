@@ -895,17 +895,29 @@ void warp_inst_t::completed(unsigned long long cycle) const {
       pc, latency * active_count());
 }
 
+/*
+kernel_info_t构造函数。
+*/
 kernel_info_t::kernel_info_t(dim3 gridDim, dim3 blockDim,
                              class function_info *entry) {
+  //kernel的入口函数。
   m_kernel_entry = entry;
+  //Grid维度。
   m_grid_dim = gridDim;
+  //Block维度。
   m_block_dim = blockDim;
+  //下一个要加载的CTA的index.x。
   m_next_cta.x = 0;
+  //下一个要加载的CTA的index.y。
   m_next_cta.y = 0;
+  //下一个要加载的CTA的index.z。
   m_next_cta.z = 0;
   m_next_tid = m_next_cta;
+  //正在执行当前kernel的SIMT Core的数量。
   m_num_cores_running = 0;
+  //当前kernel的唯一标识符。
   m_uid = (entry->gpgpu_ctx->kernel_info_m_next_uid)++;
+  //初始化当前kernel的参数内存空间。
   m_param_mem = new memory_space_impl<8192>("param", 64 * 1024);
 
   // Jin: parent and child kernel management for CDP
@@ -921,22 +933,35 @@ kernel_info_t::kernel_info_t(dim3 gridDim, dim3 blockDim,
   cache_config_set = false;
 }
 
-/*A snapshot of the texture mappings needs to be stored in the kernel's info as
-kernels should use the texture bindings seen at the time of launch and textures
- can be bound/unbound asynchronously with respect to streams. */
+/*
+A snapshot of the texture mappings needs to be stored in the kernel's info as kernels shou-
+ld use the texture bindings seen at the time of launch and textures can be bound / unbound 
+asynchronously with respect to streams. 
+纹理映射的快照需要存储在内核的信息中，因为内核应该使用启动时看到的纹理绑定，并且纹理可以相对于流异步
+绑定/解除绑定。
+*/
 kernel_info_t::kernel_info_t(
     dim3 gridDim, dim3 blockDim, class function_info *entry,
     std::map<std::string, const struct cudaArray *> nameToCudaArray,
     std::map<std::string, const struct textureInfo *> nameToTextureInfo) {
+  //kernel的入口函数。
   m_kernel_entry = entry;
+  //Grid维度。
   m_grid_dim = gridDim;
+  //Block维度。
   m_block_dim = blockDim;
+  //下一个要加载的CTA的index.x。
   m_next_cta.x = 0;
+  //下一个要加载的CTA的index.y。
   m_next_cta.y = 0;
+  //下一个要加载的CTA的index.z。
   m_next_cta.z = 0;
   m_next_tid = m_next_cta;
+  //正在执行当前kernel的SIMT Core的数量。
   m_num_cores_running = 0;
+  //当前kernel的唯一标识符。
   m_uid = (entry->gpgpu_ctx->kernel_info_m_next_uid)++;
+  //初始化当前kernel的参数内存空间。
   m_param_mem = new memory_space_impl<8192>("param", 64 * 1024);
 
   // Jin: parent and child kernel management for CDP
@@ -954,12 +979,18 @@ kernel_info_t::kernel_info_t(
   m_NameToTextureInfo = nameToTextureInfo;
 }
 
+/*
+kernel_info_t的析构函数。
+*/
 kernel_info_t::~kernel_info_t() {
   assert(m_active_threads.empty());
   destroy_cta_streams();
   delete m_param_mem;
 }
 
+/*
+返回当前 kernel_info_t 内核对象的内核名。
+*/
 std::string kernel_info_t::name() const { return m_kernel_entry->get_name(); }
 
 // Jin: parent and child kernel management for CDP
