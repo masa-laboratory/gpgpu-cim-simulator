@@ -2329,6 +2329,8 @@ void mapping(int thread, int wmma_type, int wmma_layout, int type, int index,
 /*
 cimma的功能模拟。
 */
+void decode_space(memory_space_t &space, ptx_thread_info *thread,
+                  const operand_info &op, memory_space *&mem, addr_t &addr);
 void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
   //打印指令。
   pI->print_insn();
@@ -2352,7 +2354,13 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   const operand_info &src2 = pI->src2();
 
   unsigned type = pI->get_type();
-  // printf("@@@ pI->get_type(): %d\n", pI->get_type());
+  printf("@@@ pI->get_type(): %d\n", pI->get_type());
+
+  memory_space_t space = pI->get_space();
+  printf("@@@ pI->get_space().get_type(): %d\n", pI->get_space().get_type());
+
+  unsigned vector_spec = pI->get_vector();
+  printf("@@@ pI->get_vector(): %d\n", pI->get_vector());
 
   int tid = core->get_gpu()->is_functional_sim() ? 
             (inst.warp_id_func() * core->get_warp_size()) :
@@ -2368,9 +2376,23 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   addr_t src1_addr = src1_data.u32;
   addr_t src2_addr = src2_data.u32;
 
-  printf("dst_addr, src1_addr, src2_addr: %llu, %llu, %llu\n", dst_addr, src1_addr, src2_addr);
+  printf("@@@ dst_addr, src1_addr, src2_addr: %llu, %llu, %llu\n", dst_addr, src1_addr, src2_addr);
 
+  memory_space *mem = NULL;
+  decode_space(space, thread, src2, mem, src2_addr);
   
+  int t;
+  size_t size;
+  ptx_reg_t data;
+  data.u64 = 0;
+  type_info_key::type_decode(type, size, t);
+  if (!vector_spec) {
+    mem->read(src2_addr, size / 8, &data.s64);
+    if (type == S16_TYPE || type == S32_TYPE) sign_extend(data, size, dst);
+    printf("@@@ size, type, data.s64: %d, %d, %lld\n", size, type, data.s64);
+    thread->set_operand_value(dst, data, type, thread, pI);
+  }
+
 
   /***********************************************
   const operand_info &dst = pI->dst();
@@ -3905,15 +3927,18 @@ void decode_space(memory_space_t &space, ptx_thread_info *thread,
             addr = generic_to_shared(smid, addr);
             break;
           default:
+            printf("Aborting due to unknown space.\n");
             abort();
         }
       } else {
+        printf("Aborting due to thread->get_ptx_version().ver() < 2.0.\n");
         abort();
       }
       break;
     case param_space_unclassified:
     case undefined_space:
     default:
+      printf("Aborting due to unkown space.get_type().\n");
       abort();
   }
 }
