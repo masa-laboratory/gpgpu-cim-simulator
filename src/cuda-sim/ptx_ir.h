@@ -739,12 +739,21 @@ class operand_info {
   void make_memory_operand() { m_type = memory_t; }
   void set_return() { m_is_return_var = true; }
   void set_immediate_addr() { m_immediate_address = true; }
+  //返回操作数的名称。例如，pI为一条ptx_instruction *类型的指令，pI->dst().name().c_str()返回目
+  //的操作数的名称。
   const std::string &name() const {
     assert(m_type == symbolic_t || m_type == reg_t || m_type == address_t ||
            m_type == memory_t || m_type == label_t);
     return m_value.m_symbolic->name();
   }
-
+  //如果一个操作数是向量，则返回这个向量操作数中的元素个数。例如，pI为一条ptx_instruction *类型的
+  //指令，pI->dst().get_vect_nelem()返回目的操作数的元素个数。操作数是向量的例子：
+  //wmma.mma.sync.aligned.row.col.m16n16k16.f32.f32
+  //                  {%f260, %f261, %f262, %f263, %f264, %f265, %f266, %f267}, 
+  //                  {%r144, %r145, %r146, %r147, %r148, %r149, %r150, %r151}, 
+  //                  {%r152, %r153, %r154, %r155, %r156, %r157, %r158, %r159}, 
+  //                  {%f260, %f261, %f262, %f263, %f264, %f265, %f266, %f267}; 
+  //pI->dst().get_vect_nelem()返回值为8。
   unsigned get_vect_nelem() const {
     assert(is_vector());
     if (!m_value.m_vector_symbolic[0]) return 0;
@@ -757,34 +766,34 @@ class operand_info {
     if (!m_value.m_vector_symbolic[7]) return 7;
     return 8;
   }
-
+  //如果一个操作数是向量，则返回这个向量操作数中的第idx个元素。
   const symbol *vec_symbol(int idx) const {
     assert(idx < 8);
     const symbol *result = m_value.m_vector_symbolic[idx];
     assert(result != NULL);
     return result;
   }
-
+  //如果一个操作数是向量，则返回这个向量操作数中的第0个元素的名称。
   const std::string &vec_name1() const {
     assert(m_type == vector_t);
     return m_value.m_vector_symbolic[0]->name();
   }
-
+  //如果一个操作数是向量，则返回这个向量操作数中的第1个元素的名称。
   const std::string &vec_name2() const {
     assert(m_type == vector_t);
     return m_value.m_vector_symbolic[1]->name();
   }
-
+  //如果一个操作数是向量，则返回这个向量操作数中的第2个元素的名称。
   const std::string &vec_name3() const {
     assert(m_type == vector_t);
     return m_value.m_vector_symbolic[2]->name();
   }
-
+  //如果一个操作数是向量，则返回这个向量操作数中的第3个元素的名称。
   const std::string &vec_name4() const {
     assert(m_type == vector_t);
     return m_value.m_vector_symbolic[3]->name();
   }
-
+  //判断一个操作数是否是寄存器。
   bool is_reg() const {
     if (m_type == reg_t) {
       return true;
@@ -803,12 +812,20 @@ class operand_info {
     if (m_type != symbolic_t) return false;
     return m_value.m_symbolic->type()->get_key().is_param_kernel();
   }
-
+  //判断一个操作数是否是向量，如果是则返回true，否则返回false。例如，pI为一条ptx_instruction *类
+  //型的指令，pI->dst().is_vector()返回目的操作数是否是向量。操作数是向量的例子：
+  //wmma.mma.sync.aligned.row.col.m16n16k16.f32.f32
+  //                  {%f260, %f261, %f262, %f263, %f264, %f265, %f266, %f267}, 
+  //                  {%r144, %r145, %r146, %r147, %r148, %r149, %r150, %r151}, 
+  //                  {%r152, %r153, %r154, %r155, %r156, %r157, %r158, %r159}, 
+  //                  {%f260, %f261, %f262, %f263, %f264, %f265, %f266, %f267}; 
   bool is_vector() const {
     if (m_vector) return true;
     return false;
   }
+  //返回操作数寄存器编号。
   int reg_num() const { return m_value.m_symbolic->reg_num(); }
+  //如果一个操作数是向量，则返回这个向量操作数中的第0个寄存器编号。
   int reg1_num() const { return m_value.m_vector_symbolic[0]->reg_num(); }
   int reg2_num() const { return m_value.m_vector_symbolic[1]->reg_num(); }
   int reg3_num() const {
