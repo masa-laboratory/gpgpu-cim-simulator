@@ -24,9 +24,9 @@
 #define K 16
 
 // GEMM configuration.
-#define M_TILES 12
-#define N_TILES 12
-#define K_TILES 12
+#define M_TILES 16
+#define N_TILES 16
+#define K_TILES 16
 
 #define M_TOTAL (M * M_TILES)
 #define N_TOTAL (N * N_TILES)
