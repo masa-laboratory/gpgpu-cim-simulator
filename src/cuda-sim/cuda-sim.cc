@@ -2380,7 +2380,7 @@ int tensorcore_op(int inst_opcode) {
 判断是否是CIM上的指令，包括 cimma 是则返回1，不是则返回0。 //yangjianchao16
 */                                                     //yangjianchao16
 int cim_op(int inst_opcode) {                          //yangjianchao16
-  if (inst_opcode == CIM_OP)                           //yangjianchao16
+  if (inst_opcode == CIMMA_OP)                         //yangjianchao16
     return 1;                                          //yangjianchao16
   else                                                 //yangjianchao16
     return 0;                                          //yangjianchao16
