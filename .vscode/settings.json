@@ -103,4 +103,5 @@
         ]
     },
     "cmake.sourceDirectory": "/home/yangjianchao/Github/gpgpu-cim-simulator/cuda_codes/cutlass_v2.0.0/examples/08_turing_tensorop_gemm",
+    "C_Cpp.errorSquiggles": "disabled",
 }
