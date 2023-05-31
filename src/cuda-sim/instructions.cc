@@ -2645,8 +2645,6 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   }
   printf("@@@ End print cimma computation!\n");
 
-  printf("@@@ ################ warpId:%d, ctaId:%d\n", thread->get_hw_wid(), thread->get_hw_ctaid());
-
   printf("@@@ Start print C Matrix Data...\n");
   decode_space(space, thread, dst, mem, dst_addr);
   type_info_key::type_decode(type, size, t);
