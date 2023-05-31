@@ -186,9 +186,10 @@ breakaddr  TC; yylval->int_value = BREAKADDR_OP; return OPCODE;
 \.m8n32k16\.global TC;  yylval->int_value = M8N32K16; return CONFIGURATION;
 
 \.shmma\.synchro TC; yylval->int_value = SHMMA; return CIMMA_DIRECTIVE;          //yangjianchao16
-\.rowmajor TC; yylval->int_value = ROWMAJOR; return CIMMA_LAYOUT;           //yangjianchao16
-\.colmajor TC; yylval->int_value = COLMAJOR; return CIMMA_LAYOUT;           //yangjianchao16
+\.rowmajor TC; yylval->int_value = ROWMAJOR; return CIMMA_LAYOUT;                //yangjianchao16
+\.colmajor TC; yylval->int_value = COLMAJOR; return CIMMA_LAYOUT;                //yangjianchao16
 \.m128n128k8 TC; yylval->int_value = M128N128K8; return CIMMA_CONFIGURATION;     //yangjianchao16
+\.m16n8k16 TC; yylval->int_value = M16N8K16; return CIMMA_CONFIGURATION;         //yangjianchao16
 
 \.m16n16k16\.shared TC; yylval->int_value = M16N16K16; return CONFIGURATION;
 \.m32n8k16\.shared TC; yylval->int_value = M32N8K16; return CONFIGURATION;
