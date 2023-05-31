@@ -698,6 +698,11 @@ void gpgpu_t::memcpy_to_gpu(size_t dst_start_addr, const void *src,
   for (unsigned n = 0; n < count; n++)
     m_global_mem->write(dst_start_addr + n, 1, src_data + n, NULL, NULL);
 
+  printf("@@@ Start to execute CudaMemcpy from Host to Device...\n");
+  for (unsigned n = 0; n < count/2; n++)
+      printf("@@@ memcpy_to_gpu addr:%u, byte_length:%d, data:%f\n", dst_start_addr + n, 2, (float)(((half*)src_data)[n]));
+  printf("@@@ End of executed CudaMemcpy from Host to Device!\n");
+
   // Copy into the performance model.
   // extern gpgpu_sim* g_the_gpu;
   //将数据拷贝到性能模型中。
