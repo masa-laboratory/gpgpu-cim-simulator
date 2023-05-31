@@ -187,6 +187,7 @@ template <unsigned BSIZE>
 void memory_space_impl<BSIZE>::read_single_block(mem_addr_t blk_idx,
                                                  mem_addr_t addr, size_t length,
                                                  void *data) const {
+  // printf("@@@ blk_idx:%d, addr:%u, length:%d\n", blk_idx, addr, length);
   //看一个例子：
   //    有一个存储器，它的每个内存页的大小为 BSIZE=16字节，则：
   //        addr为  0~15 时，处于第 0 号内存页；
@@ -266,6 +267,8 @@ void memory_space_impl<BSIZE>::read(mem_addr_t addr, size_t length,
   if ((addr + length) <= (index + 1) * BSIZE) {
     // fast route for intra-block access
     //不跨页读的话，就简单地执行单页内读数据即可，执行块内的快速访问。
+    // printf("@@@ read_single_block: index:%u, addr:%u, length:%d, m_log2_block_size:%d\n", 
+    //        index, addr, length, m_log2_block_size);
     read_single_block(index, addr, length, data);
   } else {
     // slow route for inter-block access
@@ -310,6 +313,9 @@ void memory_space_impl<BSIZE>::read(mem_addr_t addr, size_t length,
     }
     assert(nbytes_remain == 0);
   }
+  // char s[10];
+  // sprintf(s, "%08x", ((unsigned int*)data)[0]);
+  // printf(" ######## addr: %u, %s\n", addr, s);
 }
 
 /*
