@@ -120,12 +120,12 @@ bool stream_operation::do_operation(gpgpu_sim *gpu) {
   switch (m_type) {
     case stream_memcpy_host_to_device:
       if (g_debug_execution >= 3) printf("memcpy host-to-device\n");
-      printf("@@@ stream_memcpy_host_to_device: m_device_address_dst:%u, m_host_address_src:%u, m_cnt:%d\n", 
-             m_device_address_dst, m_host_address_src, m_cnt);
-      printf("@@@");
-      for(int i=0; i<int(m_cnt/2); i++)
-        printf("%f ", (float)((half*)m_host_address_src)[i]);
-      printf("@@@\n");
+      // printf("@@@ stream_memcpy_host_to_device: m_device_address_dst:%u, m_host_address_src:%u, m_cnt:%d\n", 
+      //        m_device_address_dst, m_host_address_src, m_cnt);
+      // printf("@@@");
+      // for(int i=0; i<int(m_cnt/2); i++)
+      //   printf("%f ", (float)((half*)m_host_address_src)[i]);
+      // printf("@@@\n");
       
       gpu->memcpy_to_gpu(m_device_address_dst, m_host_address_src, m_cnt);
       m_stream->record_next_done();
