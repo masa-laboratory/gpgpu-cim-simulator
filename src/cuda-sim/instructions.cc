@@ -121,6 +121,63 @@ float __half2float(unsigned short x) {
     return *((float*)((void*)&temp));
 }
 
+unsigned short __float2half(float f)
+{
+    unsigned short ret;
+
+    unsigned x = *((int*)(void*)(&f));
+    unsigned u = (x & 0x7fffffff), remainder, shift, lsb, lsb_s1, lsb_m1;
+    unsigned sign, exponent, mantissa;
+
+    // Get rid of +NaN/-NaN case first.
+    if (u > 0x7f800000) {
+        ret = 0x7fffU;
+        return ret;
+    }
+  
+    sign = ((x >> 16) & 0x8000);
+  
+    // Get rid of +Inf/-Inf, +0/-0.
+    if (u > 0x477fefff) {
+        ret = sign | 0x7c00U;
+        return ret;
+    }
+    if (u < 0x33000001) {
+        ret = (sign | 0x0000);
+        return ret;
+    }
+
+    exponent = ((u >> 23) & 0xff);
+    mantissa = (u & 0x7fffff);
+
+    if (exponent > 0x70) {
+        shift = 13;
+        exponent -= 0x70;
+    } else {
+        shift = 0x7e - exponent;
+        exponent = 0;
+        mantissa |= 0x800000;
+    }
+    lsb = (1 << shift);
+    lsb_s1 = (lsb >> 1);
+    lsb_m1 = (lsb - 1);
+  
+    // Round to nearest even.
+    remainder = (mantissa & lsb_m1);
+    mantissa >>= shift;
+    if (remainder > lsb_s1 || (remainder == lsb_s1 && (mantissa & 0x1))) {
+        ++mantissa;
+        if (!(mantissa & 0x3ff)) {
+            ++exponent;
+            mantissa = 0;
+        }
+    }  
+
+    ret = (sign | (exponent << 10) | mantissa);  
+
+    return ret;
+}
+
 /*
 根据单个warp内的thread编号（0~31）来计算该线程所取的16*16/32=8个数据中的第一个数据，在该矩阵中的偏
 移，需要考虑的有：
@@ -2355,6 +2412,13 @@ void mapping(int thread, int wmma_type, int wmma_layout, int type, int index,
 /*
 cimma的功能模拟。
 */
+#define CIMMA_M 16
+#define CIMMA_K 16
+#define CIMMA_N 8
+int last_thread_get_ctaid_x = -1;
+int last_thread_get_ctaid_y = -1;
+int last_thread_get_ctaid_z = -1;
+
 void decode_space(memory_space_t &space, ptx_thread_info *thread,
                   const operand_info &op, memory_space *&mem, addr_t &addr);
 void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
@@ -2396,9 +2460,17 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
 
   printf("@@@ ptx_thread_info: thread->get_ctaid().x:%d, thread->get_ctaid().y:%d, " 
                                "thread->get_ctaid().z:%d, thread->get_hw_tid():%d, "
-                               "thread->get_hw_wid():%d, thread->get_hw_sid():%d\n", 
+                               "thread->get_hw_wid():%d, thread->get_hw_sid():%d, "
+                               "thread->get_hw_ctaid():%d, thread->get_tid().x:%d, "
+                               "thread->get_tid().y:%d, thread->get_tid().z:%d, "
+                               "thread->get_ntid().x:%d, thread->get_ntid().y:%d, "
+                               "thread->get_ntid().z:%d, thread->get_uid():%d, "
+                               "thread->get_cta_uid():%d\n", 
           thread->get_ctaid().x, thread->get_ctaid().y, thread->get_ctaid().z,
-          thread->get_hw_tid(), thread->get_hw_wid(), thread->get_hw_sid());
+          thread->get_hw_tid(), thread->get_hw_wid(), thread->get_hw_sid(),
+          thread->get_hw_ctaid(), thread->get_tid().x, thread->get_tid().y,
+          thread->get_tid().z, thread->get_ntid().x, thread->get_ntid().y,
+          thread->get_ntid().z, thread->get_uid(), thread->get_cta_uid());
   
   printf("@@@ dst.get_double_operand_type():%d, src1.get_double_operand_type():%d, "
          "src2.get_double_operand_type():%d\n", dst.get_double_operand_type(), 
@@ -2494,9 +2566,9 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   decode_space(space, thread, src1, mem, src1_addr);
   type_info_key::type_decode(type, size, t);
   if (!vector_spec) {
-    for (int i=0; i<256; i++) {
+    for (int i=0; i<CIMMA_M*CIMMA_K; i++) {
       mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr + i * 2), size / 8, &data.u16);
-      printf("@@@ size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
     }
   }
   printf("@@@ End print A Matrix Data\n");
@@ -2505,15 +2577,86 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   decode_space(space, thread, src2, mem, src2_addr);
   type_info_key::type_decode(type, size, t);
   if (!vector_spec) {
-    for (int i=0; i<128; i++) {
+    for (int i=0; i<CIMMA_K*CIMMA_N; i++) {
       mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr + i * 2), size / 8, &data.u16);
-      printf("@@@ size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
     }
   }
   printf("@@@ End print B Matrix Data\n");
 
+  printf("@@@ Start print C Matrix Data...\n");
+  decode_space(space, thread, dst, mem, dst_addr);
+  type_info_key::type_decode(type, size, t);
+  if (!vector_spec) {
+    for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
+      mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
+      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+    }
+  }
+  printf("@@@ End print C Matrix Data\n");
+  
+  // A Matrix: 16 * 16
+  // B Matrix: 16 *  8
+  // C MAtrix: 16 *  8
+  // data.u16 = (unsigned short)0x3c00;
+  // mem->write(generic_to_shared(thread->get_hw_wid(), dst_addr + 0 * 2), size / 8, &data.u16,
+  //            thread, pI);
+  // void memory_space_impl<BSIZE>::write(mem_addr_t addr, size_t length,
+  //                                      const void *data,
+  //                                      class ptx_thread_info *thd,
+  //                                      const ptx_instruction *pI);
+
+  int changed_cta_id = (last_thread_get_ctaid_x==thread->get_ctaid().x && 
+                        last_thread_get_ctaid_y==thread->get_ctaid().y && 
+                        last_thread_get_ctaid_z==thread->get_ctaid().z) ? 0 : 1;
+  last_thread_get_ctaid_x = thread->get_ctaid().x;
+  last_thread_get_ctaid_y = thread->get_ctaid().y;
+  last_thread_get_ctaid_z = thread->get_ctaid().z;
   
 
+  printf("@@@ Start print cimma of warp-%d/cta-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid());
+  addr_t dst_result;
+  addr_t src_A;
+  addr_t src_B;
+  unsigned short data_A;
+  unsigned short data_B;
+  unsigned short data_C;
+  unsigned short data_PSum;
+  for (int row=0; row<CIMMA_M; row++) { // CIMMA_M
+    for (int col=0; col<CIMMA_N; col++) { // CIMMA_N
+      data_PSum = (unsigned short)0;
+      for (int k=0; k<CIMMA_K; k++) { // CIMMA_K
+        src_A = src1_addr + (row * CIMMA_K + k) * 2;  // row_major: row*CIMMA_K+k
+        src_B = src2_addr + (col * CIMMA_K + k) * 2;  // col_major: col*CIMMA_K+k
+        mem->read(generic_to_shared(thread->get_hw_wid(), src_A), size / 8, &data_A);
+        mem->read(generic_to_shared(thread->get_hw_wid(), src_B), size / 8, &data_B);
+        data_PSum = __float2half(__half2float(data_A) * __half2float(data_B) + __half2float(data_PSum));
+        printf("@@@    row:%d, col:%d, k:%d, data_A:%f, data_B:%f, data_PSum:%f\n", 
+               row, col, k, __half2float(data_A), __half2float(data_B), __half2float(data_PSum));
+      }
+      dst_result = dst_addr + (row * CIMMA_N + col) * 2; // row_major: row*CIMMA_N+col
+      if (!changed_cta_id) {
+        mem->read(generic_to_shared(thread->get_hw_wid(), dst_result), size / 8, &data_C);
+        data_PSum = __float2half(__half2float(data_C) + __half2float(data_PSum));
+      }
+      mem->write(generic_to_shared(thread->get_hw_wid(), dst_result), size / 8, &data_PSum,
+                 thread, pI);
+    }
+  }
+  printf("@@@ End print cimma computation!\n");
+
+  printf("@@@ ################ warpId:%d, ctaId:%d\n", thread->get_hw_wid(), thread->get_hw_ctaid());
+
+  printf("@@@ Start print C Matrix Data...\n");
+  decode_space(space, thread, dst, mem, dst_addr);
+  type_info_key::type_decode(type, size, t);
+  if (!vector_spec) {
+    for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
+      mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
+      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+    }
+  }
+  printf("@@@ End print C Matrix Data\n");
 
   return;                                                                          //yangjianchao16
 }                                                                                  //yangjianchao16
@@ -2522,7 +2665,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
 wmma的功能模拟。
 */
 void mma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {
-  printf("@@@ inst.warp_id_func(): %d\n", inst.warp_id_func());
+  // printf("@@@ inst.warp_id_func(): %d\n", inst.warp_id_func());
   int i, j, k, thrd;
   int row, col, offset;
   //A、B、C、D矩阵，完成 D=A*B+C 操作。
