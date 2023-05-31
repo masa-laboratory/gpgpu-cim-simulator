@@ -77,16 +77,14 @@ __global__ void mma16816NaiveKernel(const half *__restrict__ A, const half *__re
 
         uint64_t shmem_C_addr = __cvta_generic_to_shared(&shmem_C[0][0]);
 
-        // asm volatile ("cimma.shmma.synchro.rowmajor.rowmajor.m16n8k16.f16.f16 [%0], [%1], [%2];" : "=l"(shmem_C) : "l"(shmem_A), "l"(shmem_B) : "memory");
-        
-        asm volatile ("cimma.shmma.synchro.rowmajor.rowmajor.m16n8k16.f16.f16 [%0], [%1], [%2];" : : "l"(shmem_C), "l"(shmem_A), "l"(shmem_B) : "memory");
+        // asm volatile ("cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%0], [%1], [%2];" : "=l"(shmem_C) : "l"(shmem_A), "l"(shmem_B) : "memory");
+        //对于功能模拟，当更换模拟CTA时，必须将shmem_C全部置零，否则因为功能模拟所有CTA用到的都是同一块shmem_C，会导致结果出现累加导致错误。
+        asm volatile ("cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%0], [%1], [%2];" : : "l"(shmem_C), "l"(shmem_A), "l"(shmem_B) : "memory");
 
         __syncthreads();
     }
 
     if (laneId < MMA_M) {
-        //最终目的是编译指令后，该语句会被编译成一条32位的存储指令，将shmem_C中的数据存储到C中。
-        //但实际上st.指令只接受寄存器作为输入操作数，因此还需要增加一条指令，接受shmem_C的地址，将其存储到全局存储中。
         *((int4 *)(&C[(warpRow + laneId) * N + warpCol])) = *((int4 *)(&shmem_C[laneId][0]));
     }
 
@@ -200,7 +198,7 @@ int main(int argc, char** argv) {
             printf("Error! Matrix[%d][%d]=%.8f, ref=%.8f error term is > %E\n",
                     row, col, (float)h_C[i], h_C_cublas[col * M + row], eps);
             correct = false;
-            break;
+            // break;
         } else {
             printf("@@@ Right! Matrix[%d][%d]=%.8f, ref=%.8f\n", row, col, (float)h_C[i], h_C_cublas[col * M + row]);
         }
