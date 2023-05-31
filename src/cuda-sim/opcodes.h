@@ -79,6 +79,7 @@ enum cimma_type { //yangjianchao16
   SHMMA,          //yangjianchao16
   ROWMAJOR,       //yangjianchao16
   COLMAJOR,       //yangjianchao16
-  M128N128K8      //yangjianchao16
+  M128N128K8,     //yangjianchao16
+  M16N8K16        //yangjianchao16
 };                //yangjianchao16
 #endif
