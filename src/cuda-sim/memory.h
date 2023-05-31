@@ -110,6 +110,7 @@ class mem_storage {
       }
       fprintf(fout, format, i_data[d]);
       fprintf(fout, " ");
+      fprintf(fout, "%u ", d+SHARED_GENERIC_START);
     }
     fprintf(fout, "\n");
     fflush(fout);
