@@ -212,7 +212,8 @@ int main(int argc, char** argv) {
             correct = false;
             // break;
         } else {
-            printf("@@@ Right! Matrix[%d][%d]=%.8f, ref=%.8f\n", row, col, (float)h_C[i], h_C_cublas[row * N + col]);
+            if (i % 10 == 0)
+                printf("@@@ Right! Matrix[%d][%d]=%.8f, ref=%.8f\n", row, col, (float)h_C[i], h_C_cublas[row * N + col]);
         }
     }
 
