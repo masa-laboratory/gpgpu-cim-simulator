@@ -130,77 +130,89 @@ int main(int argc, char** argv) {
     half* d_B;
     half* d_C;
 
-    float* d_A_cublas;
-    float* d_B_cublas;
-    float* d_C_cublas;
+    // float* d_A_cublas;
+    // float* d_B_cublas;
+    // float* d_C_cublas;
 
     checkCudaErrors(cudaMalloc(&d_A, bytes_A));
     checkCudaErrors(cudaMalloc(&d_B, bytes_B));
     checkCudaErrors(cudaMalloc(&d_C, bytes_C));
 
-    checkCudaErrors(cudaMalloc(&d_A_cublas, bytes_A_cublas));
-    checkCudaErrors(cudaMalloc(&d_B_cublas, bytes_B_cublas));
-    checkCudaErrors(cudaMalloc(&d_C_cublas, bytes_C_cublas));
+    // checkCudaErrors(cudaMalloc(&d_A_cublas, bytes_A_cublas));
+    // checkCudaErrors(cudaMalloc(&d_B_cublas, bytes_B_cublas));
+    // checkCudaErrors(cudaMalloc(&d_C_cublas, bytes_C_cublas));
 
     // generate Matrix A's data
     for( int i = 0; i < M * K; i++ ) {
-        h_A[i] = __float2half((i+13) / 13);
-        h_A_cublas[i] = (float)((i+13) / 13);
+        h_A[i] = __float2half((i%13) / 13.);
+        h_A_cublas[i] = float((i%13) / 13.);
     }
 
     // generate Matrix B's data
     for( int i = 0; i < K * N; i++ ) {
-        h_B[i] = __float2half((i+14) / 14);
-        h_B_cublas[i] = (float)((i+14) / 14);
+        h_B[i] = __float2half((i%14) / 14.);
+        h_B_cublas[i] = float((i%14) / 14.);
     }
 
     // generate Matrix C's data
     for( int i = 0; i < M * N; i++ ) {
         h_C[i] = __float2half(0.0);
-        h_C_cublas[i] = (float)0.0;
+        h_C_cublas[i] = float(0.0);
     }
 
     checkCudaErrors(cudaMemcpy( d_A, h_A, bytes_A, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy( d_B, h_B, bytes_B, cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy( d_C, h_C, bytes_C, cudaMemcpyHostToDevice));
 
-    checkCudaErrors(cudaMemcpy( d_A_cublas, h_A_cublas, bytes_A_cublas, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy( d_B_cublas, h_B_cublas, bytes_B_cublas, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy( d_C_cublas, h_C_cublas, bytes_C_cublas, cudaMemcpyHostToDevice));
+    // checkCudaErrors(cudaMemcpy( d_A_cublas, h_A_cublas, bytes_A_cublas, cudaMemcpyHostToDevice));
+    // checkCudaErrors(cudaMemcpy( d_B_cublas, h_B_cublas, bytes_B_cublas, cudaMemcpyHostToDevice));
+    // checkCudaErrors(cudaMemcpy( d_C_cublas, h_C_cublas, bytes_C_cublas, cudaMemcpyHostToDevice));
 
     hgemmMmaNaive(d_A, d_B, d_C, M, N, K);
 
     checkCudaErrors(cudaMemcpy( h_C, d_C, bytes_C, cudaMemcpyDeviceToHost));
     
     // cublas
-    cublasHandle_t blas_handle;  
-    cublasCreate(&blas_handle);
-    float alpha = 1.0;
-    float beta = 0;
+    // cublasHandle_t blas_handle;  
+    // cublasCreate(&blas_handle);
+    // half alpha = 1.0;
+    // half beta = 0;
     
-    cublasSgemm (blas_handle, CUBLAS_OP_T, CUBLAS_OP_T, 
-        M, N, K, &alpha, 
-        d_A_cublas, K, d_B_cublas, N, &beta, d_C_cublas, N
-    );
+    // cublasSgemm (blas_handle, CUBLAS_OP_T, CUBLAS_OP_T, 
+    //     M, N, K, &alpha, 
+    //     d_A_cublas, K, d_B_cublas, N, &beta, d_C_cublas, N
+    // );
 
-    checkCudaErrors(cudaMemcpy( h_C_cublas, d_C_cublas, bytes_C_cublas, cudaMemcpyDeviceToHost));
+    // checkCudaErrors(cudaMemcpy( h_C_cublas, d_C_cublas, bytes_C_cublas, cudaMemcpyDeviceToHost));
 
-    double eps = 1.e-6;  // machine zero
+    for (int i = 0; i < M; i++) {
+        for (int j = 0; j < N; j++) {
+            for (int k = 0; k < K; k++) {
+                h_C_cublas[i * N + j] += __half2float(h_A_cublas[i * K + k] * 
+                                                      h_B_cublas[j * K + k]);
+                // printf("@@@ ### i-j-k: %d-%d-%d %f * %f => %f\n", i+1, j+1, k+1, 
+                //        (h_A_cublas[i * K + k]), (h_B_cublas[j * K + k]), h_C_cublas[i * N + j]);
+            }
+            
+        }
+    }
+
+    double eps = 0.01;  // machine zero
     bool correct = true;
     for (int i = 0; i < M * N; i++) {
         int row = i / N;
         int col = i % N;
-        double abs_err = fabs((float)h_C[i] - h_C_cublas[col * M + row]);
+        double abs_err = fabs((float)h_C[i] - h_C_cublas[row * N + col]);
         double dot_length = M;
         double abs_val = fabs((float)h_C[i]);
         double rel_err = abs_err / abs_val / dot_length;
         if (rel_err > eps) {
             printf("Error! Matrix[%d][%d]=%.8f, ref=%.8f error term is > %E\n",
-                    row, col, (float)h_C[i], h_C_cublas[col * M + row], eps);
+                    row, col, (float)h_C[i], h_C_cublas[row * N + col], eps);
             correct = false;
             // break;
         } else {
-            printf("@@@ Right! Matrix[%d][%d]=%.8f, ref=%.8f\n", row, col, (float)h_C[i], h_C_cublas[col * M + row]);
+            printf("@@@ Right! Matrix[%d][%d]=%.8f, ref=%.8f\n", row, col, (float)h_C[i], h_C_cublas[row * N + col]);
         }
     }
 
@@ -211,9 +223,9 @@ int main(int argc, char** argv) {
     cudaFree(d_B);
     cudaFree(d_C);
 
-    cudaFree(d_A_cublas);
-    cudaFree(d_B_cublas);
-    cudaFree(d_C_cublas);
+    // cudaFree(d_A_cublas);
+    // cudaFree(d_B_cublas);
+    // cudaFree(d_C_cublas);
     
     free(h_A);
     free(h_B);
