@@ -3386,7 +3386,7 @@ unsigned max_cta(const struct gpgpu_ptx_sim_info *kernel_info,
     //     10  |  13='b1010+3='b01101  |      &'b11100='b01100=12
     result_regs = gpgpu_shader_registers /
                   (padded_cta_size * ((kernel_info->regs + 3) & ~3));
-  printf("padded cta size is %d and %d and %d", padded_cta_size,
+  printf("padded cta size is %d and %d and %d.\n", padded_cta_size,
          kernel_info->regs, ((kernel_info->regs + 3) & ~3));
   
   // Limit by CTA
