@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    double eps = 0.01;  // machine zero
+    double eps = 1e-5;  // machine zero
     bool correct = true;
     for (int i = 0; i < M * N; i++) {
         int row = i / N;
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
             correct = false;
             // break;
         } else {
-            if (i % 10 == 0)
+            if (i % (int)(M*N/10) == 0)
                 printf("@@@ Right! Matrix[%d][%d]=%.8f, ref=%.8f\n", row, col, (float)h_C[i], h_C_cublas[row * N + col]);
         }
     }
@@ -241,7 +241,8 @@ int main(int argc, char** argv) {
 
 
 
-/*
+/* 
+// OLD CODE
 #include <mma.h>
 #include <stdio.h>
 #include <stdlib.h>
