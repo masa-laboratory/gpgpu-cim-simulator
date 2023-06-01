@@ -197,13 +197,13 @@ int main(int argc, char** argv) {
         }
     }
 
-    double eps = 1e-5;  // machine zero
+    double eps = 1e-2;  // machine zero
     bool correct = true;
     for (int i = 0; i < M * N; i++) {
         int row = i / N;
         int col = i % N;
         double abs_err = fabs((float)h_C[i] - h_C_cublas[row * N + col]);
-        double dot_length = M;
+        double dot_length = 1.;
         double abs_val = fabs((float)h_C[i]);
         double rel_err = abs_err / abs_val / dot_length;
         if (rel_err > eps) {
