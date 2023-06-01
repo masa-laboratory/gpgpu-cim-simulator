@@ -2423,7 +2423,7 @@ void decode_space(memory_space_t &space, ptx_thread_info *thread,
                   const operand_info &op, memory_space *&mem, addr_t &addr);
 void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
   //打印指令。
-  pI->print_insn();
+  // pI->print_insn();
 
   // printf("@@@ pI->get_source(): %s\n", pI->get_source());
   // printf("@@@ pI->dst().m_addr_space: %d\n", pI->dst().get_addr_space());
@@ -2444,13 +2444,13 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   const operand_info &src2 = pI->src2();
 
   unsigned type = pI->get_type();
-  printf("@@@ pI->get_type(): %d\n", pI->get_type());
+  // printf("@@@ pI->get_type(): %d\n", pI->get_type());
 
   memory_space_t space = pI->get_space();
-  printf("@@@ pI->get_space().get_type(): %d\n", pI->get_space().get_type());
+  // printf("@@@ pI->get_space().get_type(): %d\n", pI->get_space().get_type());
 
   unsigned vector_spec = pI->get_vector();
-  printf("@@@ pI->get_vector(): %d\n", pI->get_vector());
+  // printf("@@@ pI->get_vector(): %d\n", pI->get_vector());
 
   int tid = core->get_gpu()->is_functional_sim() ? 
             (inst.warp_id_func() * core->get_warp_size()) :
@@ -2458,142 +2458,142 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
 
   ptx_thread_info* thread = core->get_thread_info()[tid];
 
-  printf("@@@ ptx_thread_info: thread->get_ctaid().x:%d, thread->get_ctaid().y:%d, " 
-                               "thread->get_ctaid().z:%d, thread->get_hw_tid():%d, "
-                               "thread->get_hw_wid():%d, thread->get_hw_sid():%d, "
-                               "thread->get_hw_ctaid():%d, thread->get_tid().x:%d, "
-                               "thread->get_tid().y:%d, thread->get_tid().z:%d, "
-                               "thread->get_ntid().x:%d, thread->get_ntid().y:%d, "
-                               "thread->get_ntid().z:%d, thread->get_uid():%d, "
-                               "thread->get_cta_uid():%d\n", 
-          thread->get_ctaid().x, thread->get_ctaid().y, thread->get_ctaid().z,
-          thread->get_hw_tid(), thread->get_hw_wid(), thread->get_hw_sid(),
-          thread->get_hw_ctaid(), thread->get_tid().x, thread->get_tid().y,
-          thread->get_tid().z, thread->get_ntid().x, thread->get_ntid().y,
-          thread->get_ntid().z, thread->get_uid(), thread->get_cta_uid());
+  // printf("@@@ ptx_thread_info: thread->get_ctaid().x:%d, thread->get_ctaid().y:%d, " 
+  //                              "thread->get_ctaid().z:%d, thread->get_hw_tid():%d, "
+  //                              "thread->get_hw_wid():%d, thread->get_hw_sid():%d, "
+  //                              "thread->get_hw_ctaid():%d, thread->get_tid().x:%d, "
+  //                              "thread->get_tid().y:%d, thread->get_tid().z:%d, "
+  //                              "thread->get_ntid().x:%d, thread->get_ntid().y:%d, "
+  //                              "thread->get_ntid().z:%d, thread->get_uid():%d, "
+  //                              "thread->get_cta_uid():%d\n", 
+  //         thread->get_ctaid().x, thread->get_ctaid().y, thread->get_ctaid().z,
+  //         thread->get_hw_tid(), thread->get_hw_wid(), thread->get_hw_sid(),
+  //         thread->get_hw_ctaid(), thread->get_tid().x, thread->get_tid().y,
+  //         thread->get_tid().z, thread->get_ntid().x, thread->get_ntid().y,
+  //         thread->get_ntid().z, thread->get_uid(), thread->get_cta_uid());
   
-  printf("@@@ dst.get_double_operand_type():%d, src1.get_double_operand_type():%d, "
-         "src2.get_double_operand_type():%d\n", dst.get_double_operand_type(), 
-         src1.get_double_operand_type(), src2.get_double_operand_type());
+  // printf("@@@ dst.get_double_operand_type():%d, src1.get_double_operand_type():%d, "
+  //        "src2.get_double_operand_type():%d\n", dst.get_double_operand_type(), 
+  //        src1.get_double_operand_type(), src2.get_double_operand_type());
   
-  printf("@@@ dst.is_reg():%d, src1.is_reg():%d, src2.is_reg():%d\n", 
-         dst.is_reg(), src1.is_reg(), src2.is_reg());
-  printf("@@@ dst.is_builtin():%d, src1.is_builtin():%d, src2.is_builtin():%d\n", 
-         dst.is_builtin(), src1.is_builtin(), src2.is_builtin());
-  printf("@@@ dst.is_immediate_address():%d, src1.is_immediate_address():%d, src2.is_immediate_address():%d\n",
-          dst.is_immediate_address(), src1.is_immediate_address(), src2.is_immediate_address());
-  printf("@@@ dst.is_memory_operand():%d, src1.is_memory_operand():%d, src2.is_memory_operand():%d\n",
-          dst.is_memory_operand(), src1.is_memory_operand(), src2.is_memory_operand());
-  printf("@@@ dst.is_literal():%d, src1.is_literal():%d, src2.is_literal():%d\n",
-          dst.is_literal(), src1.is_literal(), src2.is_literal());
-  printf("@@@ dst.is_label():%d, src1.is_label():%d, src2.is_label():%d\n",
-          dst.is_label(), src1.is_label(), src2.is_label());
-  printf("@@@ dst.is_shared():%d, src1.is_shared():%d, src2.is_shared():%d\n",
-          dst.is_shared(), src1.is_shared(), src2.is_shared());
-  printf("@@@ dst.is_sstarr():%d, src1.is_sstarr():%d, src2.is_sstarr():%d\n",
-          dst.is_sstarr(), src1.is_sstarr(), src2.is_sstarr());
-  printf("@@@ dst.is_const():%d, src1.is_const():%d, src2.is_const():%d\n",
-          dst.is_const(), src1.is_const(), src2.is_const());
-  printf("@@@ dst.is_global():%d, src1.is_global():%d, src2.is_global():%d\n",
-          dst.is_global(), src1.is_global(), src2.is_global());
-  printf("@@@ dst.is_local():%d, src1.is_local():%d, src2.is_local():%d\n",
-          dst.is_local(), src1.is_local(), src2.is_local());
-  printf("@@@ dst.is_function_address():%d, src1.is_function_address():%d, src2.is_function_address():%d\n",
-          dst.is_function_address(), src1.is_function_address(), src2.is_function_address());
-  printf("@@@ dst.is_param_kernel():%d, src1.is_param_kernel():%d, src2.is_param_kernel():%d\n",
-          dst.is_param_kernel(), src1.is_param_kernel(), src2.is_param_kernel());
+  // printf("@@@ dst.is_reg():%d, src1.is_reg():%d, src2.is_reg():%d\n", 
+  //        dst.is_reg(), src1.is_reg(), src2.is_reg());
+  // printf("@@@ dst.is_builtin():%d, src1.is_builtin():%d, src2.is_builtin():%d\n", 
+  //        dst.is_builtin(), src1.is_builtin(), src2.is_builtin());
+  // printf("@@@ dst.is_immediate_address():%d, src1.is_immediate_address():%d, src2.is_immediate_address():%d\n",
+  //         dst.is_immediate_address(), src1.is_immediate_address(), src2.is_immediate_address());
+  // printf("@@@ dst.is_memory_operand():%d, src1.is_memory_operand():%d, src2.is_memory_operand():%d\n",
+  //         dst.is_memory_operand(), src1.is_memory_operand(), src2.is_memory_operand());
+  // printf("@@@ dst.is_literal():%d, src1.is_literal():%d, src2.is_literal():%d\n",
+  //         dst.is_literal(), src1.is_literal(), src2.is_literal());
+  // printf("@@@ dst.is_label():%d, src1.is_label():%d, src2.is_label():%d\n",
+  //         dst.is_label(), src1.is_label(), src2.is_label());
+  // printf("@@@ dst.is_shared():%d, src1.is_shared():%d, src2.is_shared():%d\n",
+  //         dst.is_shared(), src1.is_shared(), src2.is_shared());
+  // printf("@@@ dst.is_sstarr():%d, src1.is_sstarr():%d, src2.is_sstarr():%d\n",
+  //         dst.is_sstarr(), src1.is_sstarr(), src2.is_sstarr());
+  // printf("@@@ dst.is_const():%d, src1.is_const():%d, src2.is_const():%d\n",
+  //         dst.is_const(), src1.is_const(), src2.is_const());
+  // printf("@@@ dst.is_global():%d, src1.is_global():%d, src2.is_global():%d\n",
+  //         dst.is_global(), src1.is_global(), src2.is_global());
+  // printf("@@@ dst.is_local():%d, src1.is_local():%d, src2.is_local():%d\n",
+  //         dst.is_local(), src1.is_local(), src2.is_local());
+  // printf("@@@ dst.is_function_address():%d, src1.is_function_address():%d, src2.is_function_address():%d\n",
+  //         dst.is_function_address(), src1.is_function_address(), src2.is_function_address());
+  // printf("@@@ dst.is_param_kernel():%d, src1.is_param_kernel():%d, src2.is_param_kernel():%d\n",
+  //         dst.is_param_kernel(), src1.is_param_kernel(), src2.is_param_kernel());
 
   const symbol *sym0 = dst.get_symbol();
   const type_info *type0 = sym0->type();
   const type_info_key &info0 = type0->get_key();
-  printf("@@@ info0.is_reg(): %d\n", info0.is_reg());
-  printf("@@@ info0.is_param_kernel(): %d\n", info0.is_param_kernel());
-  printf("@@@ info0.is_param_local(): %d\n", info0.is_param_local());
-  printf("@@@ info0.is_global(): %d\n", info0.is_global());
-  printf("@@@ info0.is_local(): %d\n", info0.is_local());
-  printf("@@@ info0.is_const(): %d\n", info0.is_const());
-  printf("@@@ dst.is_shared(): %d, dst.is_sstarr():%d\n", dst.is_shared(), dst.is_sstarr());
-  printf("@@@ dst.get_addr_offset():%d\n", dst.get_addr_offset());
+  // printf("@@@ info0.is_reg(): %d\n", info0.is_reg());
+  // printf("@@@ info0.is_param_kernel(): %d\n", info0.is_param_kernel());
+  // printf("@@@ info0.is_param_local(): %d\n", info0.is_param_local());
+  // printf("@@@ info0.is_global(): %d\n", info0.is_global());
+  // printf("@@@ info0.is_local(): %d\n", info0.is_local());
+  // printf("@@@ info0.is_const(): %d\n", info0.is_const());
+  // printf("@@@ dst.is_shared(): %d, dst.is_sstarr():%d\n", dst.is_shared(), dst.is_sstarr());
+  // printf("@@@ dst.get_addr_offset():%d\n", dst.get_addr_offset());
 
   const symbol *sym1 = src1.get_symbol();
   const type_info *type1 = sym1->type();
   const type_info_key &info1 = type1->get_key();
-  printf("@@@ info1.is_reg(): %d\n", info1.is_reg());
-  printf("@@@ info1.is_param_kernel(): %d\n", info1.is_param_kernel());
-  printf("@@@ info1.is_param_local(): %d\n", info1.is_param_local());
-  printf("@@@ info1.is_global(): %d\n", info1.is_global());
-  printf("@@@ info1.is_local(): %d\n", info1.is_local());
-  printf("@@@ info1.is_const(): %d\n", info1.is_const());
-  printf("@@@ src1.is_shared(): %d, src1.is_sstarr():%d\n", src1.is_shared(), src1.is_sstarr());
-  printf("@@@ src1.get_addr_offset():%d\n", src1.get_addr_offset());
+  // printf("@@@ info1.is_reg(): %d\n", info1.is_reg());
+  // printf("@@@ info1.is_param_kernel(): %d\n", info1.is_param_kernel());
+  // printf("@@@ info1.is_param_local(): %d\n", info1.is_param_local());
+  // printf("@@@ info1.is_global(): %d\n", info1.is_global());
+  // printf("@@@ info1.is_local(): %d\n", info1.is_local());
+  // printf("@@@ info1.is_const(): %d\n", info1.is_const());
+  // printf("@@@ src1.is_shared(): %d, src1.is_sstarr():%d\n", src1.is_shared(), src1.is_sstarr());
+  // printf("@@@ src1.get_addr_offset():%d\n", src1.get_addr_offset());
 
   const symbol *sym2 = src2.get_symbol();
   const type_info *type2 = sym2->type();
   const type_info_key &info2 = type2->get_key();
-  printf("@@@ info2.is_reg(): %d\n", info2.is_reg());
-  printf("@@@ info2.is_param_kernel(): %d\n", info2.is_param_kernel());
-  printf("@@@ info2.is_param_local(): %d\n", info2.is_param_local());
-  printf("@@@ info2.is_global(): %d\n", info2.is_global());
-  printf("@@@ info2.is_local(): %d\n", info2.is_local());
-  printf("@@@ info2.is_const(): %d\n", info2.is_const());
-  printf("@@@ src2.is_shared(): %d, src2.is_sstarr():%d\n", src2.is_shared(), src2.is_sstarr());
-  printf("@@@ src2.get_addr_offset():%d\n", src2.get_addr_offset());
+  // printf("@@@ info2.is_reg(): %d\n", info2.is_reg());
+  // printf("@@@ info2.is_param_kernel(): %d\n", info2.is_param_kernel());
+  // printf("@@@ info2.is_param_local(): %d\n", info2.is_param_local());
+  // printf("@@@ info2.is_global(): %d\n", info2.is_global());
+  // printf("@@@ info2.is_local(): %d\n", info2.is_local());
+  // printf("@@@ info2.is_const(): %d\n", info2.is_const());
+  // printf("@@@ src2.is_shared(): %d, src2.is_sstarr():%d\n", src2.is_shared(), src2.is_sstarr());
+  // printf("@@@ src2.get_addr_offset():%d\n", src2.get_addr_offset());
   
   ptx_reg_t dst_data = thread->get_operand_value(dst, dst, type, thread, 1);
   ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
   ptx_reg_t src2_data = thread->get_operand_value(src2, dst, type, thread, 1);
   
-  printf("@@@ src1_data s8:%d, s16:%d, s32:%d, s64:%d, u8:%u, u16:%u, u32:%u, u64:%u, f16:%f, f32:%f, f64:%f, pred:%d\n",
-          src1_data.s8, src1_data.s16, src1_data.s32, src1_data.s64, src1_data.u8, src1_data.u16, src1_data.u32, 
-          src1_data.u64, src1_data.f16, src1_data.f32, src1_data.f64, src1_data.pred);
-  printf("@@@ src2_data s8:%d, s16:%d, s32:%d, s64:%d, u8:%u, u16:%u, u32:%u, u64:%u, f16:%f, f32:%f, f64:%f, pred:%d\n",
-          src2_data.s8, src2_data.s16, src2_data.s32, src2_data.s64, src2_data.u8, src2_data.u16, src2_data.u32, 
-          src2_data.u64, src2_data.f16, src2_data.f32, src2_data.f64, src2_data.pred);
+  // printf("@@@ src1_data s8:%d, s16:%d, s32:%d, s64:%d, u8:%u, u16:%u, u32:%u, u64:%u, f16:%f, f32:%f, f64:%f, pred:%d\n",
+  //         src1_data.s8, src1_data.s16, src1_data.s32, src1_data.s64, src1_data.u8, src1_data.u16, src1_data.u32, 
+  //         src1_data.u64, src1_data.f16, src1_data.f32, src1_data.f64, src1_data.pred);
+  // printf("@@@ src2_data s8:%d, s16:%d, s32:%d, s64:%d, u8:%u, u16:%u, u32:%u, u64:%u, f16:%f, f32:%f, f64:%f, pred:%d\n",
+  //         src2_data.s8, src2_data.s16, src2_data.s32, src2_data.s64, src2_data.u8, src2_data.u16, src2_data.u32, 
+  //         src2_data.u64, src2_data.f16, src2_data.f32, src2_data.f64, src2_data.pred);
   
   // All addr is the global address, and need to be translated to the shared address.
   addr_t dst_addr = dst_data.u32;
   addr_t src1_addr = src1_data.u32;
   addr_t src2_addr = src2_data.u32;
 
-  printf("@@@ dst_addr, src1_addr, src2_addr: %llu, %llu, %llu\n", dst_addr, src1_addr, src2_addr);
+  // printf("@@@ dst_addr, src1_addr, src2_addr: %llu, %llu, %llu\n", dst_addr, src1_addr, src2_addr);
 
   memory_space *mem = NULL;
   int t;
   size_t size;
   ptx_reg_t data;
 
-  printf("@@@ Start print A Matrix Data...\n");
+  // printf("@@@ Start print A Matrix Data...\n");
   decode_space(space, thread, src1, mem, src1_addr);
   type_info_key::type_decode(type, size, t);
-  if (!vector_spec) {
-    for (int i=0; i<CIMMA_M*CIMMA_K; i++) {
-      mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr + i * 2), size / 8, &data.u16);
-      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
-    }
-  }
-  printf("@@@ End print A Matrix Data\n");
+  // if (!vector_spec) {
+  //   for (int i=0; i<CIMMA_M*CIMMA_K; i++) {
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr + i * 2), size / 8, &data.u16);
+  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //   }
+  // }
+  // printf("@@@ End print A Matrix Data\n");
 
-  printf("@@@ Start print B Matrix Data...\n");
+  // printf("@@@ Start print B Matrix Data...\n");
   decode_space(space, thread, src2, mem, src2_addr);
   type_info_key::type_decode(type, size, t);
-  if (!vector_spec) {
-    for (int i=0; i<CIMMA_K*CIMMA_N; i++) {
-      mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr + i * 2), size / 8, &data.u16);
-      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
-    }
-  }
-  printf("@@@ End print B Matrix Data\n");
+  // if (!vector_spec) {
+  //   for (int i=0; i<CIMMA_K*CIMMA_N; i++) {
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr + i * 2), size / 8, &data.u16);
+  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //   }
+  // }
+  // printf("@@@ End print B Matrix Data\n");
 
-  printf("@@@ Start print C Matrix Data...\n");
+  // printf("@@@ Start print C Matrix Data...\n");
   decode_space(space, thread, dst, mem, dst_addr);
   type_info_key::type_decode(type, size, t);
-  if (!vector_spec) {
-    for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
-      mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
-      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
-    }
-  }
-  printf("@@@ End print C Matrix Data\n");
+  // if (!vector_spec) {
+  //   for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
+  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //   }
+  // }
+  // printf("@@@ End print C Matrix Data\n");
   
   // A Matrix: 16 * 16
   // B Matrix: 16 *  8
@@ -2614,7 +2614,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   last_thread_get_ctaid_z = thread->get_ctaid().z;
   
 
-  printf("@@@ Start print cimma of warp-%d/cta-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid());
+  // printf("@@@ Start print cimma of warp-%d/cta-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid());
   addr_t dst_result;
   addr_t src_A;
   addr_t src_B;
@@ -2631,8 +2631,8 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
         mem->read(generic_to_shared(thread->get_hw_wid(), src_A), size / 8, &data_A);
         mem->read(generic_to_shared(thread->get_hw_wid(), src_B), size / 8, &data_B);
         data_PSum = __float2half(__half2float(data_A) * __half2float(data_B) + __half2float(data_PSum));
-        printf("@@@    row:%d, col:%d, k:%d, data_A:%f, data_B:%f, data_PSum:%f\n", 
-               row, col, k, __half2float(data_A), __half2float(data_B), __half2float(data_PSum));
+        // printf("@@@    row:%d, col:%d, k:%d, data_A:%f, data_B:%f, data_PSum:%f\n", 
+        //        row, col, k, __half2float(data_A), __half2float(data_B), __half2float(data_PSum));
       }
       dst_result = dst_addr + (row * CIMMA_N + col) * 2; // row_major: row*CIMMA_N+col
       if (!changed_cta_id) {
@@ -2643,18 +2643,18 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
                  thread, pI);
     }
   }
-  printf("@@@ End print cimma computation!\n");
+  // printf("@@@ End print cimma computation!\n");
 
-  printf("@@@ Start print C Matrix Data...\n");
-  decode_space(space, thread, dst, mem, dst_addr);
-  type_info_key::type_decode(type, size, t);
-  if (!vector_spec) {
-    for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
-      mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
-      printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
-    }
-  }
-  printf("@@@ End print C Matrix Data\n");
+  // printf("@@@ Start print C Matrix Data...\n");
+  // decode_space(space, thread, dst, mem, dst_addr);
+  // type_info_key::type_decode(type, size, t);
+  // if (!vector_spec) {
+  //   for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
+  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //   }
+  // }
+  // printf("@@@ End print C Matrix Data\n");
 
   return;                                                                          //yangjianchao16
 }                                                                                  //yangjianchao16
