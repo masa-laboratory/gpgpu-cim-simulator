@@ -95,88 +95,87 @@ const char *g_opcode_string[NUM_OPCODES] = {
 #undef OP_W_DEF
 };
 
-float __half2float(unsigned short x) {
-    unsigned sign = ((x >> 15) & 1);
-    unsigned exponent = ((x >> 10) & 0x1f);
-    unsigned mantissa = ((x & 0x3ff) << 13);
-    if (exponent == 0x1f) {  /* NaN or Inf */
-        mantissa = (mantissa ? (sign = 0, 0x7fffff) : 0);
-        exponent = 0xff;
-    } else if (!exponent) {  /* Denorm or Zero */
-        if (mantissa) {
-            unsigned int msb;
-            exponent = 0x71;
-            do {
-                msb = (mantissa & 0x400000);
-                mantissa <<= 1;  /* normalize */
-                --exponent;
-            } while (!msb);
-            mantissa &= 0x7fffff;  /* 1.mantissa is implicit */
-        }
-    } else {
-        exponent += 0x70;
-    }
-    int temp = ((sign << 31) | (exponent << 23) | mantissa);
- 
-    return *((float*)((void*)&temp));
+float __half2float(unsigned short x) {                                        //yangjianchao16
+    unsigned sign = ((x >> 15) & 1);                                          //yangjianchao16
+    unsigned exponent = ((x >> 10) & 0x1f);                                   //yangjianchao16
+    unsigned mantissa = ((x & 0x3ff) << 13);                                  //yangjianchao16
+    if (exponent == 0x1f) {  /* NaN or Inf */                                 //yangjianchao16
+        mantissa = (mantissa ? (sign = 0, 0x7fffff) : 0);                     //yangjianchao16
+        exponent = 0xff;                                                      //yangjianchao16
+    } else if (!exponent) {  /* Denorm or Zero */                             //yangjianchao16
+        if (mantissa) {                                                       //yangjianchao16
+            unsigned int msb;                                                 //yangjianchao16
+            exponent = 0x71;                                                  //yangjianchao16
+            do {                                                              //yangjianchao16
+                msb = (mantissa & 0x400000);                                  //yangjianchao16
+                mantissa <<= 1;  /* normalize */                              //yangjianchao16
+                --exponent;                                                   //yangjianchao16
+            } while (!msb);                                                   //yangjianchao16
+            mantissa &= 0x7fffff;  /* 1.mantissa is implicit */               //yangjianchao16
+        }                                                                     //yangjianchao16
+    } else {                                                                  //yangjianchao16
+        exponent += 0x70;                                                     //yangjianchao16
+    }                                                                         //yangjianchao16
+    int temp = ((sign << 31) | (exponent << 23) | mantissa);                  //yangjianchao16                                                                    //yangjianchao16
+                                                                              //yangjianchao16
+    return *((float*)((void*)&temp));                                         //yangjianchao16
 }
 
-unsigned short __float2half(float f)
-{
-    unsigned short ret;
-
-    unsigned x = *((int*)(void*)(&f));
-    unsigned u = (x & 0x7fffffff), remainder, shift, lsb, lsb_s1, lsb_m1;
-    unsigned sign, exponent, mantissa;
-
-    // Get rid of +NaN/-NaN case first.
-    if (u > 0x7f800000) {
-        ret = 0x7fffU;
-        return ret;
-    }
-  
-    sign = ((x >> 16) & 0x8000);
-  
-    // Get rid of +Inf/-Inf, +0/-0.
-    if (u > 0x477fefff) {
-        ret = sign | 0x7c00U;
-        return ret;
-    }
-    if (u < 0x33000001) {
-        ret = (sign | 0x0000);
-        return ret;
-    }
-
-    exponent = ((u >> 23) & 0xff);
-    mantissa = (u & 0x7fffff);
-
-    if (exponent > 0x70) {
-        shift = 13;
-        exponent -= 0x70;
-    } else {
-        shift = 0x7e - exponent;
-        exponent = 0;
-        mantissa |= 0x800000;
-    }
-    lsb = (1 << shift);
-    lsb_s1 = (lsb >> 1);
-    lsb_m1 = (lsb - 1);
-  
-    // Round to nearest even.
-    remainder = (mantissa & lsb_m1);
-    mantissa >>= shift;
-    if (remainder > lsb_s1 || (remainder == lsb_s1 && (mantissa & 0x1))) {
-        ++mantissa;
-        if (!(mantissa & 0x3ff)) {
-            ++exponent;
-            mantissa = 0;
-        }
-    }  
-
-    ret = (sign | (exponent << 10) | mantissa);  
-
-    return ret;
-}
+unsigned short __float2half(float f) {                                        //yangjianchao16
+    unsigned short ret;                                                       //yangjianchao16
+                                                                              //yangjianchao16
+    unsigned x = *((int*)(void*)(&f));                                        //yangjianchao16
+    unsigned u = (x & 0x7fffffff), remainder, shift, lsb, lsb_s1, lsb_m1;     //yangjianchao16
+    unsigned sign, exponent, mantissa;                                        //yangjianchao16
+                                                                              //yangjianchao16
+    // Get rid of +NaN/-NaN case first.                                       //yangjianchao16
+    if (u > 0x7f800000) {                                                     //yangjianchao16
+        ret = 0x7fffU;                                                        //yangjianchao16
+        return ret;                                                           //yangjianchao16
+    }                                                                         //yangjianchao16
+                                                                              //yangjianchao16
+    sign = ((x >> 16) & 0x8000);                                              //yangjianchao16
+                                                                              //yangjianchao16
+    // Get rid of +Inf/-Inf, +0/-0.                                           //yangjianchao16
+    if (u > 0x477fefff) {                                                     //yangjianchao16
+        ret = sign | 0x7c00U;                                                 //yangjianchao16
+        return ret;                                                           //yangjianchao16
+    }                                                                         //yangjianchao16
+    if (u < 0x33000001) {                                                     //yangjianchao16
+        ret = (sign | 0x0000);                                                //yangjianchao16
+        return ret;                                                           //yangjianchao16
+    }                                                                         //yangjianchao16
+                                                                              //yangjianchao16
+    exponent = ((u >> 23) & 0xff);                                            //yangjianchao16
+    mantissa = (u & 0x7fffff);                                                //yangjianchao16
+                                                                              //yangjianchao16
+    if (exponent > 0x70) {                                                    //yangjianchao16
+        shift = 13;                                                           //yangjianchao16
+        exponent -= 0x70;                                                     //yangjianchao16
+    } else {                                                                  //yangjianchao16
+        shift = 0x7e - exponent;                                              //yangjianchao16
+        exponent = 0;                                                         //yangjianchao16
+        mantissa |= 0x800000;                                                 //yangjianchao16
+    }                                                                         //yangjianchao16
+    lsb = (1 << shift);                                                       //yangjianchao16
+    lsb_s1 = (lsb >> 1);                                                      //yangjianchao16
+    lsb_m1 = (lsb - 1);                                                       //yangjianchao16
+                                                                              //yangjianchao16
+    // Round to nearest even.                                                 //yangjianchao16
+    remainder = (mantissa & lsb_m1);                                          //yangjianchao16
+    mantissa >>= shift;                                                       //yangjianchao16
+    if (remainder > lsb_s1 || (remainder == lsb_s1 && (mantissa & 0x1))) {    //yangjianchao16
+        ++mantissa;                                                           //yangjianchao16
+        if (!(mantissa & 0x3ff)) {                                            //yangjianchao16
+            ++exponent;                                                       //yangjianchao16
+            mantissa = 0;                                                     //yangjianchao16
+        }                                                                     //yangjianchao16
+    }                                                                         //yangjianchao16
+                                                                              //yangjianchao16
+    ret = (sign | (exponent << 10) | mantissa);                               //yangjianchao16 
+                                                                              //yangjianchao16
+    return ret;                                                               //yangjianchao16
+}                                                                             //yangjianchao16
 
 /*
 根据单个warp内的thread编号（0~31）来计算该线程所取的16*16/32=8个数据中的第一个数据，在该矩阵中的偏
@@ -2412,15 +2411,14 @@ void mapping(int thread, int wmma_type, int wmma_layout, int type, int index,
 /*
 cimma的功能模拟。
 */
-#define CIMMA_M 16
-#define CIMMA_K 16
-#define CIMMA_N 8
-int last_thread_get_ctaid_x = -1;
-int last_thread_get_ctaid_y = -1;
-int last_thread_get_ctaid_z = -1;
 
-void decode_space(memory_space_t &space, ptx_thread_info *thread,
-                  const operand_info &op, memory_space *&mem, addr_t &addr);
+//这里还有bug，当单个线程快内有多个warp的时候会出错，但现在用的单个线程块内只有一个warp，因此暂时没出问题。
+int last_thread_get_ctaid_x = -1;                                                  //yangjianchao16
+int last_thread_get_ctaid_y = -1;                                                  //yangjianchao16
+int last_thread_get_ctaid_z = -1;                                                  //yangjianchao16
+
+void decode_space(memory_space_t &space, ptx_thread_info *thread,                  //yangjianchao16
+                  const operand_info &op, memory_space *&mem, addr_t &addr);       //yangjianchao16
 void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {       //yangjianchao16
   //打印指令。
   // pI->print_insn();
@@ -2438,25 +2436,53 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // printf("@@@ pI->dst().is_reg(): %d\n", pI->dst().is_reg());
   // printf("@@@ pI->src1().is_reg(): %d\n", pI->src1().is_reg());
   // printf("@@@ pI->src2().is_reg(): %d\n", pI->src2().is_reg());
+  // printf("@@@ pI->get_cimma_type(): %d, SHMMA:%d, ROWMAJOR:%d, COLMAJOR:%d, M128N128K8:%d, M16N8K16:%d\n", 
+  //        pI->get_cimma_type(), SHMMA, ROWMAJOR, COLMAJOR, M128N128K8, M16N8K16);
+  // printf("@@@ pI->get_cimma_layout(0): %d, pI->get_cimma_layout(1): %d, ROWMAJOR:%d, COLMAJOR:%d\n", 
+  //        pI->get_cimma_layout(0), pI->get_cimma_layout(1), ROWMAJOR, COLMAJOR);
+  // printf("@@@ pI->get_cimma_configuration(): %d, M128N128K8:%d, M16N8K16:%d\n", 
+  //        pI->get_cimma_configuration(), M128N128K8, M16N8K16);
+  
+  int CIMMA_M, CIMMA_K, CIMMA_N;                                                   //yangjianchao16
+  const int cimma_configuration = pI->get_cimma_configuration();                   //yangjianchao16
+  switch (cimma_configuration) {                                                   //yangjianchao16
+    case M128N128K8:                                                               //yangjianchao16
+      CIMMA_M = 128;                                                               //yangjianchao16
+      CIMMA_K = 8;                                                                 //yangjianchao16
+      CIMMA_N = 128;                                                               //yangjianchao16
+      break;                                                                       //yangjianchao16
+    case M16N8K16:                                                                 //yangjianchao16
+      CIMMA_M = 16;                                                                //yangjianchao16
+      CIMMA_K = 16;                                                                //yangjianchao16
+      CIMMA_N = 8;                                                                 //yangjianchao16
+      break;                                                                       //yangjianchao16
+    default:                                                                       //yangjianchao16
+      assert(0);                                                                   //yangjianchao16
+      break;                                                                       //yangjianchao16
+  }                                                                                //yangjianchao16
 
-  const operand_info &dst = pI->dst();
-  const operand_info &src1 = pI->src1();
-  const operand_info &src2 = pI->src2();
+  const operand_info &dst = pI->dst();                                             //yangjianchao16
+  const operand_info &src1 = pI->src1();                                           //yangjianchao16
+  const operand_info &src2 = pI->src2();                                           //yangjianchao16
 
-  unsigned type = pI->get_type();
-  // printf("@@@ pI->get_type(): %d\n", pI->get_type());
+  // Type of the dst operand.
+  unsigned type_dst = pI->get_type();                                              //yangjianchao16
+  // printf("@@@ pI->get_type(): %d, F16_TYPE: %d\n", type_dst, F16_TYPE);
+  // Type of the src1 and src2 operand.
+  unsigned type_src = pI->get_type2();                                             //yangjianchao16
+  // printf("@@@ pI->get_type2(): %d, F16_TYPE: %d\n", type_src, F16_TYPE);
 
-  memory_space_t space = pI->get_space();
+  memory_space_t space = pI->get_space();                                          //yangjianchao16
   // printf("@@@ pI->get_space().get_type(): %d\n", pI->get_space().get_type());
 
-  unsigned vector_spec = pI->get_vector();
+  unsigned vector_spec = pI->get_vector();                                         //yangjianchao16
   // printf("@@@ pI->get_vector(): %d\n", pI->get_vector());
 
-  int tid = core->get_gpu()->is_functional_sim() ? 
-            (inst.warp_id_func() * core->get_warp_size()) :
-            (inst.warp_id() * core->get_warp_size());
+  int tid = core->get_gpu()->is_functional_sim() ?                                 //yangjianchao16
+            (inst.warp_id_func() * core->get_warp_size()) :                        //yangjianchao16
+            (inst.warp_id() * core->get_warp_size());                              //yangjianchao16
 
-  ptx_thread_info* thread = core->get_thread_info()[tid];
+  ptx_thread_info* thread = core->get_thread_info()[tid];                          //yangjianchao16
 
   // printf("@@@ ptx_thread_info: thread->get_ctaid().x:%d, thread->get_ctaid().y:%d, " 
   //                              "thread->get_ctaid().z:%d, thread->get_hw_tid():%d, "
@@ -2503,9 +2529,9 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // printf("@@@ dst.is_param_kernel():%d, src1.is_param_kernel():%d, src2.is_param_kernel():%d\n",
   //         dst.is_param_kernel(), src1.is_param_kernel(), src2.is_param_kernel());
 
-  const symbol *sym0 = dst.get_symbol();
-  const type_info *type0 = sym0->type();
-  const type_info_key &info0 = type0->get_key();
+  const symbol *sym0 = dst.get_symbol();                                           //yangjianchao16
+  const type_info *type0 = sym0->type();                                           //yangjianchao16
+  const type_info_key &info0 = type0->get_key();                                   //yangjianchao16
   // printf("@@@ info0.is_reg(): %d\n", info0.is_reg());
   // printf("@@@ info0.is_param_kernel(): %d\n", info0.is_param_kernel());
   // printf("@@@ info0.is_param_local(): %d\n", info0.is_param_local());
@@ -2515,9 +2541,9 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // printf("@@@ dst.is_shared(): %d, dst.is_sstarr():%d\n", dst.is_shared(), dst.is_sstarr());
   // printf("@@@ dst.get_addr_offset():%d\n", dst.get_addr_offset());
 
-  const symbol *sym1 = src1.get_symbol();
-  const type_info *type1 = sym1->type();
-  const type_info_key &info1 = type1->get_key();
+  const symbol *sym1 = src1.get_symbol();                                          //yangjianchao16
+  const type_info *type1 = sym1->type();                                           //yangjianchao16
+  const type_info_key &info1 = type1->get_key();                                   //yangjianchao16
   // printf("@@@ info1.is_reg(): %d\n", info1.is_reg());
   // printf("@@@ info1.is_param_kernel(): %d\n", info1.is_param_kernel());
   // printf("@@@ info1.is_param_local(): %d\n", info1.is_param_local());
@@ -2527,9 +2553,9 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // printf("@@@ src1.is_shared(): %d, src1.is_sstarr():%d\n", src1.is_shared(), src1.is_sstarr());
   // printf("@@@ src1.get_addr_offset():%d\n", src1.get_addr_offset());
 
-  const symbol *sym2 = src2.get_symbol();
-  const type_info *type2 = sym2->type();
-  const type_info_key &info2 = type2->get_key();
+  const symbol *sym2 = src2.get_symbol();                                          //yangjianchao16
+  const type_info *type2 = sym2->type();                                           //yangjianchao16
+  const type_info_key &info2 = type2->get_key();                                   //yangjianchao16
   // printf("@@@ info2.is_reg(): %d\n", info2.is_reg());
   // printf("@@@ info2.is_param_kernel(): %d\n", info2.is_param_kernel());
   // printf("@@@ info2.is_param_local(): %d\n", info2.is_param_local());
@@ -2539,9 +2565,9 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // printf("@@@ src2.is_shared(): %d, src2.is_sstarr():%d\n", src2.is_shared(), src2.is_sstarr());
   // printf("@@@ src2.get_addr_offset():%d\n", src2.get_addr_offset());
   
-  ptx_reg_t dst_data = thread->get_operand_value(dst, dst, type, thread, 1);
-  ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type, thread, 1);
-  ptx_reg_t src2_data = thread->get_operand_value(src2, dst, type, thread, 1);
+  ptx_reg_t dst_data = thread->get_operand_value(dst, dst, type_dst, thread, 1);   //yangjianchao16
+  ptx_reg_t src1_data = thread->get_operand_value(src1, dst, type_src, thread, 1); //yangjianchao16
+  ptx_reg_t src2_data = thread->get_operand_value(src2, dst, type_src, thread, 1); //yangjianchao16
   
   // printf("@@@ src1_data s8:%d, s16:%d, s32:%d, s64:%d, u8:%u, u16:%u, u32:%u, u64:%u, f16:%f, f32:%f, f64:%f, pred:%d\n",
   //         src1_data.s8, src1_data.s16, src1_data.s32, src1_data.s64, src1_data.u8, src1_data.u16, src1_data.u32, 
@@ -2551,46 +2577,46 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   //         src2_data.u64, src2_data.f16, src2_data.f32, src2_data.f64, src2_data.pred);
   
   // All addr is the global address, and need to be translated to the shared address.
-  addr_t dst_addr = dst_data.u32;
-  addr_t src1_addr = src1_data.u32;
-  addr_t src2_addr = src2_data.u32;
+  addr_t dst_addr = dst_data.u32;                                                  //yangjianchao16
+  addr_t src1_addr = src1_data.u32;                                                //yangjianchao16
+  addr_t src2_addr = src2_data.u32;                                                //yangjianchao16
 
   // printf("@@@ dst_addr, src1_addr, src2_addr: %llu, %llu, %llu\n", dst_addr, src1_addr, src2_addr);
 
-  memory_space *mem = NULL;
-  int t;
-  size_t size;
-  ptx_reg_t data;
+  memory_space *mem = NULL;                                                        //yangjianchao16
+  int t;                                                                           //yangjianchao16
+  size_t size_dst, size_src;                                                       //yangjianchao16
+  ptx_reg_t data;                                                                  //yangjianchao16
 
   // printf("@@@ Start print A Matrix Data...\n");
-  decode_space(space, thread, src1, mem, src1_addr);
-  type_info_key::type_decode(type, size, t);
+  decode_space(space, thread, src1, mem, src1_addr);                               //yangjianchao16
+  type_info_key::type_decode(type_src, size_src, t);                               //yangjianchao16
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_M*CIMMA_K; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr + i * 2), size / 8, &data.u16);
-  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr + i * (size_src / 8)), size_src / 8, &data.u16);
+  //     printf("@@@     size_src:%d, type_src:%d, data.u16:%x, __half2float(data.u16):%f\n", size_src, type_src, data.u16, __half2float(data.u16));
   //   }
   // }
   // printf("@@@ End print A Matrix Data\n");
 
   // printf("@@@ Start print B Matrix Data...\n");
-  decode_space(space, thread, src2, mem, src2_addr);
-  type_info_key::type_decode(type, size, t);
+  decode_space(space, thread, src2, mem, src2_addr);                               //yangjianchao16
+  type_info_key::type_decode(type_src, size_src, t);                               //yangjianchao16
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_K*CIMMA_N; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr + i * 2), size / 8, &data.u16);
-  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr + i * (size_src / 8)), size_src / 8, &data.u16);
+  //     printf("@@@     size_src:%d, type_src:%d, data.u16:%x, __half2float(data.u16):%f\n", size_src, type_src, data.u16, __half2float(data.u16));
   //   }
   // }
   // printf("@@@ End print B Matrix Data\n");
 
   // printf("@@@ Start print C Matrix Data...\n");
-  decode_space(space, thread, dst, mem, dst_addr);
-  type_info_key::type_decode(type, size, t);
+  decode_space(space, thread, dst, mem, dst_addr);                                 //yangjianchao16
+  type_info_key::type_decode(type_dst, size_dst, t);                               //yangjianchao16
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
-  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * (size_dst / 8)), size_dst / 8, &data.u16);
+  //     printf("@@@     size_dst:%d, type_dst:%d, data.u16:%x, __half2float(data.u16):%f\n", size_dst, type_dst, data.u16, __half2float(data.u16));
   //   }
   // }
   // printf("@@@ End print C Matrix Data\n");
@@ -2599,59 +2625,68 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // B Matrix: 16 *  8
   // C MAtrix: 16 *  8
   // data.u16 = (unsigned short)0x3c00;
-  // mem->write(generic_to_shared(thread->get_hw_wid(), dst_addr + 0 * 2), size / 8, &data.u16,
+  // mem->write(generic_to_shared(thread->get_hw_wid(), dst_addr + 0 * (size_dst / 8)), size_dst / 8, &data.u16,
   //            thread, pI);
   // void memory_space_impl<BSIZE>::write(mem_addr_t addr, size_t length,
   //                                      const void *data,
   //                                      class ptx_thread_info *thd,
   //                                      const ptx_instruction *pI);
 
-  int changed_cta_id = (last_thread_get_ctaid_x==thread->get_ctaid().x && 
-                        last_thread_get_ctaid_y==thread->get_ctaid().y && 
-                        last_thread_get_ctaid_z==thread->get_ctaid().z) ? 0 : 1;
-  last_thread_get_ctaid_x = thread->get_ctaid().x;
-  last_thread_get_ctaid_y = thread->get_ctaid().y;
-  last_thread_get_ctaid_z = thread->get_ctaid().z;
+  //这里还有bug，当单个线程快内有多个warp的时候会出错，但现在用的单个线程块内只有一个warp，因此暂时没出问题。
+  int changed_cta_id = (last_thread_get_ctaid_x==thread->get_ctaid().x &&          //yangjianchao16
+                        last_thread_get_ctaid_y==thread->get_ctaid().y &&          //yangjianchao16
+                        last_thread_get_ctaid_z==thread->get_ctaid().z) ? 0 : 1;   //yangjianchao16
+  last_thread_get_ctaid_x = thread->get_ctaid().x;                                 //yangjianchao16
+  last_thread_get_ctaid_y = thread->get_ctaid().y;                                 //yangjianchao16
+  last_thread_get_ctaid_z = thread->get_ctaid().z;                                 //yangjianchao16
   
 
   // printf("@@@ Start print cimma of warp-%d/cta-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid());
-  addr_t dst_result;
-  addr_t src_A;
-  addr_t src_B;
-  unsigned short data_A;
-  unsigned short data_B;
-  unsigned short data_C;
-  unsigned short data_PSum;
-  for (int row=0; row<CIMMA_M; row++) { // CIMMA_M
-    for (int col=0; col<CIMMA_N; col++) { // CIMMA_N
-      data_PSum = (unsigned short)0;
-      for (int k=0; k<CIMMA_K; k++) { // CIMMA_K
-        src_A = src1_addr + (row * CIMMA_K + k) * 2;  // row_major: row*CIMMA_K+k
-        src_B = src2_addr + (col * CIMMA_K + k) * 2;  // col_major: col*CIMMA_K+k
-        mem->read(generic_to_shared(thread->get_hw_wid(), src_A), size / 8, &data_A);
-        mem->read(generic_to_shared(thread->get_hw_wid(), src_B), size / 8, &data_B);
-        data_PSum = __float2half(__half2float(data_A) * __half2float(data_B) + __half2float(data_PSum));
+  addr_t dst_result;                                                               //yangjianchao16
+  addr_t src_A;                                                                    //yangjianchao16
+  addr_t src_B;                                                                    //yangjianchao16
+  unsigned short data_A;                                                           //yangjianchao16
+  unsigned short data_B;                                                           //yangjianchao16
+  unsigned short data_C;                                                           //yangjianchao16
+  unsigned short data_PSum;                                                        //yangjianchao16
+  for (int row=0; row<CIMMA_M; row++) { // CIMMA_M                                 //yangjianchao16
+    for (int col=0; col<CIMMA_N; col++) { // CIMMA_N                               //yangjianchao16
+      data_PSum = (unsigned short)0;                                               //yangjianchao16
+      for (int k=0; k<CIMMA_K; k++) { // CIMMA_K                                   //yangjianchao16
+        src_A = src1_addr +                                                        //yangjianchao16
+                (row * CIMMA_K + k) * (size_src / 8);  // row_major: row*CIMMA_K+k //yangjianchao16
+        src_B = src2_addr +                                                        //yangjianchao16
+                (col * CIMMA_K + k) * (size_src / 8);  // col_major: col*CIMMA_K+k //yangjianchao16
+        mem->read(generic_to_shared(thread->get_hw_wid(), src_A),                  //yangjianchao16
+                                    size_src / 8, &data_A);                        //yangjianchao16
+        mem->read(generic_to_shared(thread->get_hw_wid(), src_B),                  //yangjianchao16
+                                    size_src / 8, &data_B);                        //yangjianchao16
+        data_PSum = __float2half(__half2float(data_A) * __half2float(data_B) +     //yangjianchao16
+                                 __half2float(data_PSum));                         //yangjianchao16
         // printf("@@@    row:%d, col:%d, k:%d, data_A:%f, data_B:%f, data_PSum:%f\n", 
         //        row, col, k, __half2float(data_A), __half2float(data_B), __half2float(data_PSum));
       }
-      dst_result = dst_addr + (row * CIMMA_N + col) * 2; // row_major: row*CIMMA_N+col
-      if (!changed_cta_id) {
-        mem->read(generic_to_shared(thread->get_hw_wid(), dst_result), size / 8, &data_C);
-        data_PSum = __float2half(__half2float(data_C) + __half2float(data_PSum));
-      }
-      mem->write(generic_to_shared(thread->get_hw_wid(), dst_result), size / 8, &data_PSum,
-                 thread, pI);
-    }
+      dst_result = dst_addr +                                                      //yangjianchao16
+                   (row * CIMMA_N + col) *                                         //yangjianchao16
+                   (size_dst / 8); // row_major: row*CIMMA_N+col                   //yangjianchao16
+      if (!changed_cta_id) {                                                       //yangjianchao16
+        mem->read(generic_to_shared(thread->get_hw_wid(), dst_result),             //yangjianchao16
+                  size_dst / 8, &data_C);                                          //yangjianchao16
+        data_PSum = __float2half(__half2float(data_C) + __half2float(data_PSum));  //yangjianchao16
+      }                                                                            //yangjianchao16
+      mem->write(generic_to_shared(thread->get_hw_wid(), dst_result),              //yangjianchao16
+                 size_dst / 8, &data_PSum, thread, pI);                            //yangjianchao16
+    }                                                                              //yangjianchao16
   }
   // printf("@@@ End print cimma computation!\n");
 
   // printf("@@@ Start print C Matrix Data...\n");
   // decode_space(space, thread, dst, mem, dst_addr);
-  // type_info_key::type_decode(type, size, t);
+  // type_info_key::type_decode(type_dst, size_dst, t);
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * 2), size / 8, &data.u16);
-  //     printf("@@@     size:%d, type:%d, data.u16:%x, __half2float(data.u16):%f\n", size, type, data.u16, __half2float(data.u16));
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * (size_dst / 8)), size_dst / 8, &data.u16);
+  //     printf("@@@     size_dst:%d, type_dst:%d, data.u16:%x, __half2float(data.u16):%f\n", size_dst, type_dst, data.u16, __half2float(data.u16));
   //   }
   // }
   // printf("@@@ End print C Matrix Data\n");
@@ -4147,18 +4182,18 @@ void decode_space(memory_space_t &space, ptx_thread_info *thread,
             addr = generic_to_shared(smid, addr);
             break;
           default:
-            printf("Aborting due to unknown space.\n");
+            printf("Aborting due to unknown space.\n");                       //yangjianchao16
             abort();
         }
       } else {
-        printf("Aborting due to thread->get_ptx_version().ver() < 2.0.\n");
+        printf("Aborting due to thread->get_ptx_version().ver() < 2.0.\n");   //yangjianchao16
         abort();
       }
       break;
     case param_space_unclassified:
     case undefined_space:
     default:
-      printf("Aborting due to unkown space.get_type().\n");
+      printf("Aborting due to unkown space.get_type().\n");                   //yangjianchao16
       abort();
   }
 }
