@@ -2641,7 +2641,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   last_thread_get_ctaid_z = thread->get_ctaid().z;                                 //yangjianchao16
   
 
-  // printf("@@@ Start print cimma of warp-%d/cta-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid());
+  // printf("@@@ Start print cimma of warp-%d/cta-%d/sm-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid(), thread->get_hw_sid());
   // fflush(stdout);
   addr_t dst_result;                                                               //yangjianchao16
   addr_t src_A;                                                                    //yangjianchao16
@@ -2670,8 +2670,9 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
       dst_result = generic_to_shared(thread->get_hw_sid(), dst_addr) +             //yangjianchao16
                    (row * CIMMA_N + col) *                                         //yangjianchao16
                    (size_dst / 8); // row_major: row*CIMMA_N+col                   //yangjianchao16
-      if (!changed_cta_id) {                                                       //yangjianchao16
-
+      // printf("@@@ fun sim:%d\n", core->get_gpu()->gpgpu_ctx->func_sim->g_ptx_sim_mode);
+      if (!changed_cta_id || 
+          !core->get_gpu()->gpgpu_ctx->func_sim->g_ptx_sim_mode) {                 //yangjianchao16
         mem->read(dst_result, size_dst / 8, &data_C);                              //yangjianchao16
         data_PSum = __float2half(__half2float(data_C) + __half2float(data_PSum));  //yangjianchao16
       }                                                                            //yangjianchao16
