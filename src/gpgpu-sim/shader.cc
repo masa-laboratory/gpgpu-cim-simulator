@@ -139,8 +139,8 @@ void shader_core_ctx::create_front_pipeline() {
     if (m_config->gpgpu_tensor_core_avail)
       assert(m_config->gpgpu_num_sched_per_core ==
              m_pipeline_reg[ID_OC_TENSOR_CORE].get_size());
-    printf("@@@ m_config->gpgpu_num_sched_per_core: %d, m_pipeline_reg[ID_OC_CIM].get_size():%d\n", 
-           m_config->gpgpu_num_sched_per_core, m_pipeline_reg[ID_OC_CIM].get_size());
+    // printf("@@@ m_config->gpgpu_num_sched_per_core: %d, m_pipeline_reg[ID_OC_CIM].get_size():%d\n", 
+    //        m_config->gpgpu_num_sched_per_core, m_pipeline_reg[ID_OC_CIM].get_size());
     if (m_config->gpgpu_cim_avail)                            //yangjianchao16
       assert(m_config->gpgpu_num_sched_per_core ==            //yangjianchao16
              m_pipeline_reg[ID_OC_CIM].get_size());           //yangjianchao16
