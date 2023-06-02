@@ -79,6 +79,7 @@ __global__ void mma16816NaiveKernel(const half *__restrict__ A, const half *__re
 
         // asm volatile ("cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%0], [%1], [%2];" : "=l"(shmem_C) : "l"(shmem_A), "l"(shmem_B) : "memory");
         //对于功能模拟，当更换模拟CTA时，必须将shmem_C全部置零，否则因为功能模拟所有CTA用到的都是同一块shmem_C，会导致结果出现累加导致错误。
+        //[0]f16.[1]f16 表示[1]输入矩阵A和B的数据类型为half，[0]输出矩阵C的数据类型为half。
         asm volatile ("cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%0], [%1], [%2];" : : "l"(shmem_C), "l"(shmem_A), "l"(shmem_B) : "memory");
 
         __syncthreads();
