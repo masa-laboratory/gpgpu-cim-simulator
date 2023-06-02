@@ -1581,8 +1581,10 @@ ptx_instruction::ptx_instruction(
         m_cimma_layout[rr++] = last_ptx_inst_option;                             //yangjianchao16
         break;                                                                   //yangjianchao16
       case M128N128K8:                                                           //yangjianchao16
+        m_cimma_configuration = last_ptx_inst_option;                            //yangjianchao16
         break;                                                                   //yangjianchao16
       case M16N8K16:                                                             //yangjianchao16
+        m_cimma_configuration = last_ptx_inst_option;                            //yangjianchao16
         break;                                                                   //yangjianchao16
       default:                                                                   //yangjianchao16
         assert(0);                                                               //yangjianchao16
