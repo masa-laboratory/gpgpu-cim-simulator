@@ -2679,7 +2679,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
 
       mem->write(dst_result, size_dst / 8, &data_PSum, thread, pI);                //yangjianchao16
     }                                                                              //yangjianchao16
-  }
+  }                                                                                //yangjianchao16
   // printf("@@@ End print cimma computation!\n");
 
   // printf("@@@ Start print C Matrix Data...\n");
