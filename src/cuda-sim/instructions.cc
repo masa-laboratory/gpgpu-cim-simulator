@@ -2593,7 +2593,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   type_info_key::type_decode(type_src, size_src, t);                               //yangjianchao16
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_M*CIMMA_K; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr + i * (size_src / 8)), size_src / 8, &data.u16);
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), src1_addr) + i * (size_src / 8), size_src / 8, &data.u16);
   //     printf("@@@     size_src:%d, type_src:%d, data.u16:%x, __half2float(data.u16):%f\n", size_src, type_src, data.u16, __half2float(data.u16));
   //   }
   // }
@@ -2604,7 +2604,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   type_info_key::type_decode(type_src, size_src, t);                               //yangjianchao16
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_K*CIMMA_N; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr + i * (size_src / 8)), size_src / 8, &data.u16);
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), src2_addr) + i * (size_src / 8), size_src / 8, &data.u16);
   //     printf("@@@     size_src:%d, type_src:%d, data.u16:%x, __half2float(data.u16):%f\n", size_src, type_src, data.u16, __half2float(data.u16));
   //   }
   // }
@@ -2615,7 +2615,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   type_info_key::type_decode(type_dst, size_dst, t);                               //yangjianchao16
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * (size_dst / 8)), size_dst / 8, &data.u16);
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr) + i * (size_dst / 8), size_dst / 8, &data.u16);
   //     printf("@@@     size_dst:%d, type_dst:%d, data.u16:%x, __half2float(data.u16):%f\n", size_dst, type_dst, data.u16, __half2float(data.u16));
   //   }
   // }
@@ -2625,7 +2625,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // B Matrix: 16 *  8
   // C MAtrix: 16 *  8
   // data.u16 = (unsigned short)0x3c00;
-  // mem->write(generic_to_shared(thread->get_hw_wid(), dst_addr + 0 * (size_dst / 8)), size_dst / 8, &data.u16,
+  // mem->write(generic_to_shared(thread->get_hw_wid(), dst_addr) + 0 * (size_dst / 8), size_dst / 8, &data.u16,
   //            thread, pI);
   // void memory_space_impl<BSIZE>::write(mem_addr_t addr, size_t length,
   //                                      const void *data,
@@ -2642,6 +2642,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   
 
   // printf("@@@ Start print cimma of warp-%d/cta-%d computation...\n", thread->get_hw_wid(), thread->get_hw_ctaid());
+  // fflush(stdout);
   addr_t dst_result;                                                               //yangjianchao16
   addr_t src_A;                                                                    //yangjianchao16
   addr_t src_B;                                                                    //yangjianchao16
@@ -2653,29 +2654,29 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
     for (int col=0; col<CIMMA_N; col++) { // CIMMA_N                               //yangjianchao16
       data_PSum = (unsigned short)0;                                               //yangjianchao16
       for (int k=0; k<CIMMA_K; k++) { // CIMMA_K                                   //yangjianchao16
-        src_A = src1_addr +                                                        //yangjianchao16
+        src_A = generic_to_shared(thread->get_hw_sid(), src1_addr) +               //yangjianchao16
                 (row * CIMMA_K + k) * (size_src / 8);  // row_major: row*CIMMA_K+k //yangjianchao16
-        src_B = src2_addr +                                                        //yangjianchao16
+        src_B = generic_to_shared(thread->get_hw_sid(), src2_addr) +               //yangjianchao16
                 (col * CIMMA_K + k) * (size_src / 8);  // col_major: col*CIMMA_K+k //yangjianchao16
-        mem->read(generic_to_shared(thread->get_hw_wid(), src_A),                  //yangjianchao16
-                                    size_src / 8, &data_A);                        //yangjianchao16
-        mem->read(generic_to_shared(thread->get_hw_wid(), src_B),                  //yangjianchao16
-                                    size_src / 8, &data_B);                        //yangjianchao16
+
+        mem->read(src_A, size_src / 8, &data_A);                                   //yangjianchao16
+
+        mem->read(src_B, size_src / 8, &data_B);                                   //yangjianchao16
         data_PSum = __float2half(__half2float(data_A) * __half2float(data_B) +     //yangjianchao16
                                  __half2float(data_PSum));                         //yangjianchao16
         // printf("@@@    row:%d, col:%d, k:%d, data_A:%f, data_B:%f, data_PSum:%f\n", 
         //        row, col, k, __half2float(data_A), __half2float(data_B), __half2float(data_PSum));
       }
-      dst_result = dst_addr +                                                      //yangjianchao16
+      dst_result = generic_to_shared(thread->get_hw_sid(), dst_addr) +             //yangjianchao16
                    (row * CIMMA_N + col) *                                         //yangjianchao16
                    (size_dst / 8); // row_major: row*CIMMA_N+col                   //yangjianchao16
       if (!changed_cta_id) {                                                       //yangjianchao16
-        mem->read(generic_to_shared(thread->get_hw_wid(), dst_result),             //yangjianchao16
-                  size_dst / 8, &data_C);                                          //yangjianchao16
+
+        mem->read(dst_result, size_dst / 8, &data_C);                              //yangjianchao16
         data_PSum = __float2half(__half2float(data_C) + __half2float(data_PSum));  //yangjianchao16
       }                                                                            //yangjianchao16
-      mem->write(generic_to_shared(thread->get_hw_wid(), dst_result),              //yangjianchao16
-                 size_dst / 8, &data_PSum, thread, pI);                            //yangjianchao16
+
+      mem->write(dst_result, size_dst / 8, &data_PSum, thread, pI);                //yangjianchao16
     }                                                                              //yangjianchao16
   }
   // printf("@@@ End print cimma computation!\n");
@@ -2685,7 +2686,7 @@ void cimma_impl(const ptx_instruction *pI, core_t *core, warp_inst_t inst) {    
   // type_info_key::type_decode(type_dst, size_dst, t);
   // if (!vector_spec) {
   //   for (int i=0; i<CIMMA_M*CIMMA_N; i++) {
-  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr + i * (size_dst / 8)), size_dst / 8, &data.u16);
+  //     mem->read(generic_to_shared(thread->get_hw_wid(), dst_addr) + i * (size_dst / 8), size_dst / 8, &data.u16);
   //     printf("@@@     size_dst:%d, type_dst:%d, data.u16:%x, __half2float(data.u16):%f\n", size_dst, type_dst, data.u16, __half2float(data.u16));
   //   }
   // }
