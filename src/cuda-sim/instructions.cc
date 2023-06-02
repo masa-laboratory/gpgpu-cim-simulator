@@ -116,7 +116,7 @@ float __half2float(unsigned short x) {                                        //
     } else {                                                                  //yangjianchao16
         exponent += 0x70;                                                     //yangjianchao16
     }                                                                         //yangjianchao16
-    int temp = ((sign << 31) | (exponent << 23) | mantissa);                  //yangjianchao16                                                                    //yangjianchao16
+    int temp = ((sign << 31) | (exponent << 23) | mantissa);                  //yangjianchao16
                                                                               //yangjianchao16
     return *((float*)((void*)&temp));                                         //yangjianchao16
 }
