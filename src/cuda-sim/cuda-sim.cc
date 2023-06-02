@@ -562,6 +562,8 @@ bool isspace_shared(unsigned smid, addr_t addr) {
   addr_t start = SHARED_GENERIC_START + smid * SHARED_MEM_SIZE_MAX;
   //计算id代表的当前SM的shred memory的终止地址。
   addr_t end = SHARED_GENERIC_START + (smid + 1) * SHARED_MEM_SIZE_MAX;
+  // printf("$$$ start:%lu, end:%lu, addr:%lu, addr<start:%d, addr>=end:%d\n", start, end, addr, addr<start, addr>=end);
+  // fflush(stdout);
   if ((addr >= end) || (addr < start)) return false;
   return true;
 }
@@ -596,6 +598,8 @@ memory_space_t whichspace(addr_t addr) {
 */
 addr_t generic_to_shared(unsigned smid, addr_t addr) {
   assert(isspace_shared(smid, addr));
+  // printf("$$$ smid: %d\n", smid);
+  // fflush(stdout);
   return addr - (SHARED_GENERIC_START + smid * SHARED_MEM_SIZE_MAX);
 }
 
