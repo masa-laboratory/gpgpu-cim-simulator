@@ -1257,10 +1257,11 @@ class ptx_instruction : public warp_inst_t {
   unsigned get_vector() const { return m_vector_spec; }
   unsigned get_atomic() const { return m_atomic_spec; }
 
-  int get_cimma_type() const { return m_cimma_type; }
-  int get_cimma_layout(int index) const {
-    return m_cimma_layout[index];
-  }
+  int get_cimma_type() const { return m_cimma_type; }                                                 //yangjianchao16
+  int get_cimma_layout(int index) const {                                                             //yangjianchao16
+    return m_cimma_layout[index];                                                                     //yangjianchao16
+  }                                                                                                   //yangjianchao16
+  int get_cimma_configuration() const {return m_cimma_configuration; }                                //yangjianchao16
 
   int get_wmma_type() const { return m_wmma_type; }
   //warp中的每一个线程都持有矩阵的一部分。warp中线程加载的fragment的分布是未指定的，并且依赖于目标体系
