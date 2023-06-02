@@ -208,8 +208,9 @@ int main(int argc, char** argv) {
         double abs_val = fabs((float)h_C[i]);
         double rel_err = abs_err / abs_val / dot_length;
         if (rel_err > eps) {
-            printf("Error! Matrix[%d][%d]=%.8f, ref=%.8f error term is > %E\n",
-                    row, col, (float)h_C[i], h_C_cublas[row * N + col], eps);
+            if (i % (int)(M*N/10) == 0)
+                printf("Error! Matrix[%d][%d]=%.8f, ref=%.8f error term is > %E\n",
+                        row, col, (float)h_C[i], h_C_cublas[row * N + col], eps);
             correct = false;
             // break;
         } else {
