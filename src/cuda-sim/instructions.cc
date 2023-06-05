@@ -119,7 +119,7 @@ float __half2float(unsigned short x) {                                        //
     int temp = ((sign << 31) | (exponent << 23) | mantissa);                  //yangjianchao16
                                                                               //yangjianchao16
     return *((float*)((void*)&temp));                                         //yangjianchao16
-}
+}                                                                             //yangjianchao16
 
 unsigned short __float2half(float f) {                                        //yangjianchao16
     unsigned short ret;                                                       //yangjianchao16
