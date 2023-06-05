@@ -1,0 +1,344 @@
+
+
+
+
+
+
+
+
+.version 7.0
+.target sm_75
+.address_size 64
+
+
+
+
+
+
+.visible .entry _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm(
+.param .u64 _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_0,
+.param .u64 _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_1,
+.param .u64 _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_2,
+.param .u64 _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_3,
+.param .u64 _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_4,
+.param .u64 _Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_5
+)
+{
+.reg .pred %p<18>;
+.reg .b32 %r<166>;
+.reg .b64 %rd<117>;
+
+	.shared .align 2 .b8 _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_A[512];
+
+	.shared .align 2 .b8 _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_B[256];
+
+	.shared .align 2 .b8 _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_C[256];
+
+ld.param.u64 %rd30, [_Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_0];
+ld.param.u64 %rd31, [_Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_1];
+ld.param.u64 %rd27, [_Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_2];
+ld.param.u64 %rd32, [_Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_3];
+ld.param.u64 %rd28, [_Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_4];
+ld.param.u64 %rd29, [_Z19mma16816NaiveKernelPK6__halfS1_PS_mmm_param_5];
+cvta.to.global.u64 %rd1, %rd31;
+cvta.to.global.u64 %rd2, %rd30;
+add.s64 %rd3, %rd29, 15;
+shr.u64 %rd4, %rd3, 4;
+mov.u32 %r1, %ctaid.x;
+shl.b32 %r7, %r1, 4;
+cvt.u64.u32	%rd5, %r7;
+mov.u32 %r2, %ctaid.y;
+shl.b32 %r8, %r2, 3;
+cvt.u64.u32	%rd6, %r8;
+setp.ge.u64	%p4, %rd6, %rd28;
+setp.ge.u64	%p5, %rd5, %rd32;
+or.pred %p6, %p4, %p5;
+@%p6 bra BB0_28;
+
+mov.u32 %r3, %tid.x;
+and.b32 %r4, %r3, 31;
+setp.eq.s64	%p7, %rd4, 0;
+@%p7 bra BB0_25;
+
+shr.u32 %r9, %r4, 1;
+shl.b32 %r10, %r9, 5;
+mov.u32 %r11, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_A;
+add.s32 %r12, %r11, %r10;
+and.b32 %r13, %r3, 1;
+shl.b32 %r14, %r13, 4;
+add.s32 %r5, %r12, %r14;
+cvt.u64.u32	%rd37, %r9;
+add.s64 %rd38, %rd37, %rd5;
+mul.lo.s64 %rd7, %rd38, %rd29;
+cvt.u64.u32	%rd8, %r13;
+mov.u32 %r15, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_B;
+add.s32 %r16, %r15, %r10;
+add.s32 %r6, %r16, %r14;
+add.s64 %rd39, %rd37, %rd6;
+mul.lo.s64 %rd9, %rd39, %rd29;
+and.b64 %rd36, %rd4, 3;
+mov.u64 %rd111, 0;
+setp.eq.s64	%p8, %rd36, 0;
+@%p8 bra BB0_14;
+
+setp.eq.s64	%p9, %rd36, 1;
+@%p9 bra BB0_11;
+
+setp.eq.s64	%p10, %rd36, 2;
+@%p10 bra BB0_8;
+
+shl.b64 %rd40, %rd7, 1;
+add.s64 %rd41, %rd2, %rd40;
+shl.b64 %rd42, %rd8, 4;
+add.s64 %rd43, %rd41, %rd42;
+ld.global.nc.v4.u32 {%r17, %r18, %r19, %r20}, [%rd43];
+st.shared.v4.u32 [%r5], {%r17, %r18, %r19, %r20};
+setp.gt.u32	%p11, %r4, 15;
+@%p11 bra BB0_7;
+
+shl.b64 %rd44, %rd9, 1;
+add.s64 %rd45, %rd1, %rd44;
+add.s64 %rd47, %rd45, %rd42;
+ld.global.nc.v4.u32 {%r25, %r26, %r27, %r28}, [%rd47];
+st.shared.v4.u32 [%r6], {%r25, %r26, %r27, %r28};
+
+BB0_7:
+bar.sync 0;
+mov.u32 %r33, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_C;
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r33;
+cvta.shared.u64 %rd48, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r11;
+cvta.shared.u64 %rd49, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r15;
+cvta.shared.u64 %rd50, %temp;
+}
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd48], [%rd49], [%rd50];
+
+	bar.sync 0;
+mov.u64 %rd111, 1;
+
+BB0_8:
+shl.b64 %rd11, %rd111, 4;
+add.s64 %rd52, %rd11, %rd7;
+shl.b64 %rd53, %rd52, 1;
+add.s64 %rd54, %rd2, %rd53;
+shl.b64 %rd55, %rd8, 4;
+add.s64 %rd56, %rd54, %rd55;
+ld.global.nc.v4.u32 {%r36, %r37, %r38, %r39}, [%rd56];
+st.shared.v4.u32 [%r5], {%r36, %r37, %r38, %r39};
+setp.gt.u32	%p12, %r4, 15;
+@%p12 bra BB0_10;
+
+add.s64 %rd57, %rd11, %rd9;
+shl.b64 %rd58, %rd57, 1;
+add.s64 %rd59, %rd1, %rd58;
+add.s64 %rd61, %rd59, %rd55;
+ld.global.nc.v4.u32 {%r44, %r45, %r46, %r47}, [%rd61];
+st.shared.v4.u32 [%r6], {%r44, %r45, %r46, %r47};
+
+BB0_10:
+bar.sync 0;
+mov.u32 %r52, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_C;
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r52;
+cvta.shared.u64 %rd62, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r11;
+cvta.shared.u64 %rd63, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r15;
+cvta.shared.u64 %rd64, %temp;
+}
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd62], [%rd63], [%rd64];
+
+	bar.sync 0;
+add.s64 %rd111, %rd111, 1;
+
+BB0_11:
+shl.b64 %rd14, %rd111, 4;
+add.s64 %rd65, %rd14, %rd7;
+shl.b64 %rd66, %rd65, 1;
+add.s64 %rd67, %rd2, %rd66;
+shl.b64 %rd68, %rd8, 4;
+add.s64 %rd69, %rd67, %rd68;
+ld.global.nc.v4.u32 {%r55, %r56, %r57, %r58}, [%rd69];
+st.shared.v4.u32 [%r5], {%r55, %r56, %r57, %r58};
+setp.gt.u32	%p13, %r4, 15;
+@%p13 bra BB0_13;
+
+add.s64 %rd70, %rd14, %rd9;
+shl.b64 %rd71, %rd70, 1;
+add.s64 %rd72, %rd1, %rd71;
+add.s64 %rd74, %rd72, %rd68;
+ld.global.nc.v4.u32 {%r63, %r64, %r65, %r66}, [%rd74];
+st.shared.v4.u32 [%r6], {%r63, %r64, %r65, %r66};
+
+BB0_13:
+bar.sync 0;
+mov.u32 %r71, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_C;
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r71;
+cvta.shared.u64 %rd75, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r11;
+cvta.shared.u64 %rd76, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r15;
+cvta.shared.u64 %rd77, %temp;
+}
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd75], [%rd76], [%rd77];
+
+	bar.sync 0;
+add.s64 %rd111, %rd111, 1;
+
+BB0_14:
+setp.lt.u64	%p14, %rd3, 64;
+@%p14 bra BB0_25;
+
+bfe.u32 %r74, %r3, 1, 4;
+or.b32 %r76, %r74, %r7;
+cvt.u64.u32	%rd78, %r74;
+cvt.u64.u32	%rd79, %r76;
+mul.lo.s64 %rd80, %rd29, %rd79;
+shl.b64 %rd81, %rd111, 4;
+add.s64 %rd82, %rd80, %rd81;
+mul.wide.u32 %rd83, %r13, 8;
+add.s64 %rd84, %rd82, %rd83;
+shl.b64 %rd85, %rd84, 1;
+add.s64 %rd115, %rd2, %rd85;
+add.s64 %rd87, %rd78, %rd6;
+mul.lo.s64 %rd88, %rd29, %rd87;
+add.s64 %rd89, %rd88, %rd81;
+add.s64 %rd90, %rd89, %rd83;
+shl.b64 %rd91, %rd90, 1;
+add.s64 %rd116, %rd1, %rd91;
+
+BB0_16:
+ld.global.nc.v4.u32 {%r79, %r80, %r81, %r82}, [%rd115];
+st.shared.v4.u32 [%r5], {%r79, %r80, %r81, %r82};
+setp.gt.u32	%p15, %r4, 15;
+@%p15 bra BB0_18;
+
+ld.global.nc.v4.u32 {%r87, %r88, %r89, %r90}, [%rd116];
+st.shared.v4.u32 [%r6], {%r87, %r88, %r89, %r90};
+
+BB0_18:
+setp.lt.u32	%p1, %r4, 16;
+bar.sync 0;
+mov.u32 %r95, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_C;
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r95;
+cvta.shared.u64 %rd92, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r11;
+cvta.shared.u64 %rd93, %temp;
+}
+{
+.reg .u64 %temp; 
+cvt.u64.u32 %temp, %r15;
+cvta.shared.u64 %rd94, %temp;
+}
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd92], [%rd93], [%rd94];
+
+	bar.sync 0;
+ld.global.nc.v4.u32 {%r98, %r99, %r100, %r101}, [%rd115+32];
+st.shared.v4.u32 [%r5], {%r98, %r99, %r100, %r101};
+@!%p1 bra BB0_20;
+bra.uni BB0_19;
+
+BB0_19:
+ld.global.nc.v4.u32 {%r106, %r107, %r108, %r109}, [%rd116+32];
+st.shared.v4.u32 [%r6], {%r106, %r107, %r108, %r109};
+
+BB0_20:
+bar.sync 0;
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd92], [%rd93], [%rd94];
+
+	bar.sync 0;
+ld.global.nc.v4.u32 {%r117, %r118, %r119, %r120}, [%rd115+64];
+st.shared.v4.u32 [%r5], {%r117, %r118, %r119, %r120};
+@!%p1 bra BB0_22;
+bra.uni BB0_21;
+
+BB0_21:
+ld.global.nc.v4.u32 {%r125, %r126, %r127, %r128}, [%rd116+64];
+st.shared.v4.u32 [%r6], {%r125, %r126, %r127, %r128};
+
+BB0_22:
+bar.sync 0;
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd92], [%rd93], [%rd94];
+
+	bar.sync 0;
+ld.global.nc.v4.u32 {%r136, %r137, %r138, %r139}, [%rd115+96];
+st.shared.v4.u32 [%r5], {%r136, %r137, %r138, %r139};
+@!%p1 bra BB0_24;
+bra.uni BB0_23;
+
+BB0_23:
+ld.global.nc.v4.u32 {%r144, %r145, %r146, %r147}, [%rd116+96];
+st.shared.v4.u32 [%r6], {%r144, %r145, %r146, %r147};
+
+BB0_24:
+bar.sync 0;
+
+	cimma.shmma.synchro.rowmajor.colmajor.m16n8k16.f16.f16 [%rd92], [%rd93], [%rd94];
+
+	bar.sync 0;
+add.s64 %rd111, %rd111, 4;
+setp.lt.u64	%p16, %rd111, %rd4;
+add.s64 %rd115, %rd115, 128;
+add.s64 %rd116, %rd116, 128;
+@%p16 bra BB0_16;
+
+BB0_25:
+setp.gt.u32	%p17, %r4, 15;
+@%p17 bra BB0_27;
+
+cvt.u64.u32	%rd104, %r4;
+add.s64 %rd105, %rd104, %rd5;
+mul.lo.s64 %rd106, %rd105, %rd28;
+add.s64 %rd107, %rd106, %rd6;
+cvta.to.global.u64 %rd108, %rd27;
+shl.b64 %rd109, %rd107, 1;
+add.s64 %rd110, %rd108, %rd109;
+shl.b32 %r155, %r4, 4;
+mov.u32 %r156, _ZZ19mma16816NaiveKernelPK6__halfS1_PS_mmmE7shmem_C;
+add.s32 %r157, %r156, %r155;
+ld.shared.v4.u32 {%r158, %r159, %r160, %r161}, [%r157];
+st.global.v4.u32 [%rd110], {%r158, %r159, %r160, %r161};
+
+BB0_27:
+bar.sync 0;
+
+BB0_28:
+ret;
+}
+
+
