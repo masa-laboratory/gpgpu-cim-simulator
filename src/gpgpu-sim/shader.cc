@@ -1811,7 +1811,7 @@ swl_scheduler::swl_scheduler(shader_core_stats *stats, shader_core_ctx *shader,
                              register_set *mem_out, int id, char *config_string)
     : scheduler_unit(stats, shader, scoreboard, simt, warp, sp_out, dp_out,
                      sfu_out, int_out, tensor_core_out, 
-                     cim_out, //yangjianchao16
+                     cim_out,  //yangjianchao16
                      spec_cores_out, mem_out,
                      id) {
   unsigned m_prioritization_readin;
